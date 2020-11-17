@@ -59,11 +59,11 @@ emptystring := ""
 foundincfile := $(emptystring)
 
 # check if the file configs/make.inc exists?
-USERMAKE := $(shell if test -r configs/make.inc; then echo "configs/make.inc"; fi)
+USERMAKE := $(shell if test -r configs/make.hip; then echo "configs/make.hip"; fi)
 
-ifeq ($(USERMAKE),configs/make.inc)
-  include configs/make.inc
-  foundincfile := "configs/make.inc"
+ifeq ($(USERMAKE),configs/make.hip)
+  include configs/make.hip
+  foundincfile := "configs/make.hip"
 else
 
 # if configs/make.inc does not exist
@@ -193,7 +193,7 @@ FOBJ = $(addprefix $(builddir)/,$(OBJ)) $(addprefix $(builddir)/,$(QUADPACK))
 
 # prefix
 ifeq ($(raja_cuda),yes)
-x: $(FSW4) $(FOBJ)
+sw4ck: $(FSW4) $(FOBJ)
 	@echo "*** Configuration file: '" $(foundincfile) "' ***"
 	@echo "********* User configuration variables **************"
 	@echo "debug=" $(debug) " proj=" $(proj) " etree=" $(etree) " SW4ROOT"= $(SW4ROOT) 

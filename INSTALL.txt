@@ -4,11 +4,11 @@ CUDA Build & Run:
 
 with nvcc and recent g++ in the path, do:
 make -f Makefile.cuda
-lrun -T1 ./x sw4ck.in ( On LC machines )
+lrun -T1 ./sw4ck sw4ck.in ( On LC machines )
 
 
 HIP Build:
 
 with hipcc in the path and rocm>=3.9.0
 make -f Makefile.hip
-srun -n1 ./x sw4ck.in
+srun -n1 ./sw4ck sw4ck.in

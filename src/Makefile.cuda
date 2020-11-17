@@ -193,7 +193,7 @@ FOBJ = $(addprefix $(builddir)/,$(OBJ)) $(addprefix $(builddir)/,$(QUADPACK))
 
 # prefix
 ifeq ($(raja_cuda),yes)
-x: $(FSW4) $(FOBJ)
+sw4ck: $(FSW4) $(FOBJ)
 	@echo "*** Configuration file: '" $(foundincfile) "' ***"
 	@echo "********* User configuration variables **************"
 	@echo "debug=" $(debug) " proj=" $(proj) " etree=" $(etree) " SW4ROOT"= $(SW4ROOT) 
