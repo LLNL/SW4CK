@@ -1,3 +1,4 @@
+set(ENABLE_CUDA ON CACHE BOOL "")
 # Use Clang compilers for C/C++
 set(GCC_VERSION "gcc-8.3.1" CACHE STRING "")
 set(GCC_HOME "/usr/tce/packages/gcc/${GCC_VERSION}")
@@ -10,7 +11,6 @@ set(BLT_CXX_STD "c++11" CACHE STRING "")
 # CUDA support
 #------------------------------------------------------------------------------
 
-set(ENABLE_CUDA ON CACHE BOOL "")
 
 set(CUDA_TOOLKIT_ROOT_DIR "/usr/tce/packages/cuda/cuda-10.1.243" CACHE PATH "")
 set(CMAKE_CUDA_COMPILER "${CUDA_TOOLKIT_ROOT_DIR}/bin/nvcc" CACHE PATH "")

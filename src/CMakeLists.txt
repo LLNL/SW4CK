@@ -18,7 +18,7 @@ if (NOT BLT_CXX_STD)
 endif()
 
 #add_executable(sw4ck curvitest.C)
-if (SW4_ENABLE_CUDA)
+if (ENABLE_CUDA)
 blt_add_executable(NAME sw4ck 
   SOURCES curvitest.C curvilinear4sgc.C Events.C 
   DEPENDS_ON cuda )
@@ -37,9 +37,10 @@ else()
     blt_add_target_compile_flags(TO sw4ck FLAGS -DNO_RAJA=1)
 endif()
 
-if (SW4_ENABLE_CUDA)
+if (ENABLE_CUDA)
     blt_add_target_compile_flags(TO sw4ck FLAGS -DENABLE_CUDA=1)
 endif()
+
 if (ENABLE_HIP)
     blt_add_target_compile_flags(TO sw4ck FLAGS -DENABLE_HIP=1)
     blt_add_target_compile_flags(TO sw4ck FLAGS -isystem /opt/rocm-3.9.0/hsa/include -isystem /opt/rocm-3.9.0/hip/include -D__HIP_ARCH_GFX906__=1 --cuda-gpu-arch=gfx906 -O3 -x hip -Wno-inconsistent-missing-override --amdgpu-target=gfx906 --save-temps -fgpu-rdc )
