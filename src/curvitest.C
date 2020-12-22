@@ -5,6 +5,7 @@
 #include <sstream>
 #include <vector>
 #define float_sw4 double
+#include "SW4CKConfig.h"
 #include "foralls.h"
 #ifdef ENABLE_CUDA
 #include <cuda_profiler_api.h>
