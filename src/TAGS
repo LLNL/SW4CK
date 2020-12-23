@@ -1,0 +1,284 @@
+
+Events.C,154
+hipEvent_t newEvent(6,106
+void insertEvent(12,195
+float timeEvent(14,259
+cudaEvent_t newEvent(23,442
+void insertEvent(29,534
+float timeEvent(31,600
+
+curvilinear4sgc.C,1516
+__device__ __forceinline__ T load(38,1487
+__device__ __forceinline__ void store(42,1604
+#define float_sw4 45,1720
+#define SW4_MARK_FUNCTION46,1745
+#define SW4_MARK_BEGIN(47,1771
+#define SW4_MARK_END(48,1799
+#define RAJA_DEVICE 49,1825
+#define SPLIT_VERSION55,1949
+void curvilinear4sg_ci(66,2575
+#define mu(128,4926
+#define la(129,4986
+#define jac(130,5050
+#define u(131,5112
+#define lu(132,5187
+#define met(133,5264
+#define strx(134,5343
+#define stry(135,5379
+#define acof(136,5415
+#define bope(137,5482
+#define ghcof(138,5529
+#define acof_no_gp(139,5561
+#define ghcof_no_gp(140,5640
+#undef mu2813,145186
+#undef la2814,145196
+#undef jac2815,145206
+#undef u2816,145217
+#undef lu2817,145226
+#undef met2818,145236
+#undef strx2819,145247
+#undef stry2820,145259
+#undef acof2821,145271
+#undef bope2822,145283
+#undef ghcof2823,145295
+#undef acof_no_gp2824,145308
+#undef ghcof_no_gp2825,145326
+void curvilinear4sg_ci(2828,145353
+#define mu(2879,147218
+#define la(2880,147278
+#define jac(2881,147342
+#define u(2882,147404
+#define lu(2883,147479
+#define met(2884,147556
+#define strx(2885,147635
+#define stry(2886,147671
+#define acof(2887,147707
+#define bope(2888,147774
+#define ghcof(2889,147821
+#define NO_RAJA 2900,148035
+#undef mu4509,234546
+#undef la4510,234556
+#undef jac4511,234566
+#undef u4512,234577
+#undef lu4513,234586
+#undef met4514,234596
+#undef strx4515,234607
+#undef stry4516,234619
+#undef acof4517,234631
+#undef bope4518,234643
+#undef ghcof4519,234655
+
+curvitest.C,1047
+#define float_sw4 7,106
+class Sarray 14,235
+  Sarray(Sarray::Sarray16,259
+  int m_nc,Sarray::m_nc21,428
+  int m_nc, m_ni,Sarray::m_ni21,428
+  int m_nc, m_ni, m_nj,Sarray::m_nj21,428
+  int m_nc, m_ni, m_nj, m_nk;Sarray::m_nk21,428
+  int m_ib,Sarray::m_ib22,458
+  int m_ib, m_ie,Sarray::m_ie22,458
+  int m_ib, m_ie, m_jb,Sarray::m_jb22,458
+  int m_ib, m_ie, m_jb, m_je,Sarray::m_je22,458
+  int m_ib, m_ie, m_jb, m_je, m_kb,Sarray::m_kb22,458
+  int m_ib, m_ie, m_jb, m_je, m_kb, m_ke;Sarray::m_ke22,458
+  ssize_t m_base;Sarray::m_base23,500
+  size_t m_offi,Sarray::m_offi24,518
+  size_t m_offi, m_offj,Sarray::m_offj24,518
+  size_t m_offi, m_offj, m_offk,Sarray::m_offk24,518
+  size_t m_offi, m_offj, m_offk, m_offc,Sarray::m_offc24,518
+  size_t m_offi, m_offj, m_offk, m_offc, m_npts;Sarray::m_npts24,518
+  double* m_data;Sarray::m_data25,567
+  size_t size;Sarray::size26,585
+  int g;Sarray::g27,600
+std::string Sarray::fill(30,613
+void Sarray::init(63,1567
+double Sarray::norm(68,1717
+int main(84,2427
+
+SW4CKConfig.h,68
+#define SW4CK_VERSION_MAJOR 2,49
+#define SW4CK_VERSION_MINOR 3,79
+
+cuda_foralls.h,2817
+#define __CUDA_FORALLS_H__2,27
+__global__ void forallkernel(17,404
+void forall(22,574
+void forallasync(31,917
+template <int N,40,1242
+void forall(41,1278
+__global__ void forallkernelB(52,1641
+void forallB(66,2065
+class Range 76,2339
+  Range(Range::Range78,2362
+  int start;Range::start84,2585
+  int end;Range::end85,2598
+  int blocks;Range::blocks86,2609
+  int tpb;Range::tpb87,2623
+  bool invalid;Range::invalid88,2634
+template <int N,91,2654
+class RangeGS 92,2678
+  RangeGS(RangeGS::RangeGS94,2703
+  int start;RangeGS::start95,2784
+  int end;RangeGS::end96,2797
+  int blocks;RangeGS::blocks97,2808
+  int tpb;RangeGS::tpb98,2822
+__global__ void forall3kernel(102,2862
+template <int N,111,3314
+__global__ void forall3kernel(112,3346
+template <int N,120,3797
+template <int N, typename Tag,120,3797
+__global__ void forall3kernel(121,3843
+__global__ void forall3gskernel(131,4330
+void forall3(143,4849
+template <typename T1,167,5682
+template <typename T1, typename T2,167,5682
+template <typename T1, typename T2, typename T3,167,5682
+void forall3async(168,5750
+template <typename T1,195,7021
+template <typename T1, typename T2,195,7021
+template <typename T1, typename T2, typename T3,195,7021
+void forall3(196,7089
+template <typename T1,205,7459
+template <typename T1, typename T2,205,7459
+template <typename T1, typename T2, typename T3,205,7459
+void forall3GSasync(206,7527
+template <typename T1,214,7869
+template <typename T1, typename T2,214,7869
+template <typename T1, typename T2, typename T3,214,7869
+void forall3GS(215,7937
+__global__ void forall2kernel(227,8348
+template <typename T1,234,8656
+template <typename T1, typename T2,234,8656
+void forall2async(235,8711
+template <typename T1,243,8988
+template <typename T1, typename T2,243,8988
+void forall2(244,9043
+template <int N,254,9360
+template <int N, typename T1,254,9360
+void forall3asyncAT(255,9409
+#define SW4_VERBOSE265,9818
+template <typename T,339,12995
+__global__ void forallgskernel(340,13032
+template <int N,345,13202
+template <int N, typename T,345,13202
+void forallX(346,13250
+template <int N,369,14055
+void forall3X(370,14091
+template <int N,392,14755
+template <int N, typename T1,392,14755
+template <int N, typename T1, typename T2,392,14755
+template <int N, typename T1, typename T2, typename T3,392,14755
+void forall3async(393,14830
+class Tclass 405,15449
+  Tclass(Tclass::Tclass407,15473
+  int value;Tclass::value408,15527
+  float best;Tclass::best409,15540
+template <int N,412,15558
+template <int N, typename Tag,412,15558
+template <int N, typename Tag, typename T1,412,15558
+template <int N, typename Tag, typename T1, typename T2,412,15558
+template <int N, typename Tag, typename T1, typename T2, typename T3,412,15558
+void forall3async(414,15657
+
+foralls.h,30
+#define __SW4_FORALL_H__2,25
+
+hip_foralls.h,3808
+#define __HIP_FORALLS_H__2,26
+__global__ void forallkernel(22,486
+void forall(27,656
+void forallasync(38,1105
+template <int N,49,1536
+void forall(50,1572
+__global__ void forallkernelB(63,2041
+void forallB(77,2464
+class Range 89,2845
+  Range(Range::Range91,2868
+  int start;Range::start97,3091
+  int end;Range::end98,3104
+  int blocks;Range::blocks99,3115
+  int tpb;Range::tpb100,3129
+  bool invalid;Range::invalid101,3140
+template <int N,104,3160
+class RangeGS 105,3184
+  RangeGS(RangeGS::RangeGS107,3209
+  int start;RangeGS::start108,3290
+  int end;RangeGS::end109,3303
+  int tpb;RangeGS::tpb110,3314
+  int blocks;RangeGS::blocks111,3325
+__global__ void forall3kernel(115,3368
+template <int N,124,3820
+__global__ void forall3kernel(125,3852
+__global__ void forall3gskernel(135,4329
+void forall3(147,4848
+template <typename T1,172,5772
+template <typename T1, typename T2,172,5772
+template <typename T1, typename T2, typename T3,172,5772
+void forall3async(173,5840
+template <typename T1,190,6596
+template <typename T1, typename T2,190,6596
+template <typename T1, typename T2, typename T3,190,6596
+void forall3(191,6664
+template <typename T1,200,7033
+template <typename T1, typename T2,200,7033
+template <typename T1, typename T2, typename T3,200,7033
+void forall3GSasync(201,7101
+template <typename T1,210,7472
+template <typename T1, typename T2,210,7472
+template <typename T1, typename T2, typename T3,210,7472
+void forall3GS(211,7540
+__global__ void forall2kernel(223,7950
+template <typename T1,230,8258
+template <typename T1, typename T2,230,8258
+void forall2async(231,8313
+template <typename T1,241,8700
+template <typename T1, typename T2,241,8700
+void forall2(242,8755
+template <int N,253,9090
+template <int N, int M,253,9090
+class RangeAT 254,9121
+  RangeAT(RangeAT::RangeAT256,9146
+  static std::map<RangeAT::std::map332,12349
+  static std::map<std::tuple<int, int, int>, std::tuple<dim3, dim3>> map;RangeAT::map332,12349
+  static std::map<RangeAT::std::map333,12423
+      confs;RangeAT::confs335,12523
+  static std::map<RangeAT::std::map336,12536
+  static std::map<std::tuple<int, int, int>, float> mintime;RangeAT::mintime336,12536
+  static std::map<RangeAT::std::map337,12597
+  static std::map<std::tuple<int, int, int>, int> vloca;RangeAT::vloca337,12597
+  static std::map<RangeAT::std::map338,12654
+  static std::map<std::tuple<int, int, int>, std::ofstream> files;RangeAT::files338,12654
+  static dim3 mint,RangeAT::mint339,12721
+  static dim3 mint, minb;RangeAT::minb339,12721
+  int istart,RangeAT::istart340,12747
+  int istart, jstart,RangeAT::jstart340,12747
+  int istart, jstart, kstart;RangeAT::kstart340,12747
+  int iend,RangeAT::iend341,12777
+  int iend, jend,RangeAT::jend341,12777
+  int iend, jend, kend;RangeAT::kend341,12777
+  int ib,RangeAT::ib342,12801
+  int ib, jb,RangeAT::jb342,12801
+  int ib, jb, kb;RangeAT::kb342,12801
+  int ic,RangeAT::ic343,12819
+  int ic, jc,RangeAT::jc343,12819
+  int ic, jc, kc;RangeAT::kc343,12819
+  int blocks;RangeAT::blocks344,12837
+  int tpb;RangeAT::tpb345,12851
+template <int N,348,12866
+template <int N, typename T1,348,12866
+void forall3asyncAT(349,12915
+#define SW4_VERBOSE359,13321
+class Tclass 436,16619
+  Tclass(Tclass::Tclass438,16643
+  int value;Tclass::value439,16697
+  float best;Tclass::best440,16710
+template <int N,444,16729
+template <int N, typename Tag,444,16729
+__global__ void forall3kernel(445,16775
+template <int N,454,17237
+template <int N, typename Tag,454,17237
+template <int N, typename Tag, typename T1,454,17237
+template <int N, typename Tag, typename T1, typename T2,454,17237
+template <int N, typename Tag, typename T1, typename T2, typename T3,454,17237
+void forall3async(456,17336
