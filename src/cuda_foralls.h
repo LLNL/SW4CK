@@ -404,7 +404,10 @@ void forall3async(T1 &irange, T2 &jrange, T3 &krange, LoopBody &&body) {
 template <int N>
 class Tclass {
  public:
-  Tclass(float best_in=0.0){ value=N; best=best_in; }
+  Tclass(float best_in = 0.0) {
+    value = N;
+    best = best_in;
+  }
   int value;
   float best;
 };

@@ -35,7 +35,7 @@ std::string Sarray::fill(std::istringstream& iss) {
     return "Break";
 #ifdef VERBOSE
   std::cout << name << " " << m_npts << "\n";
-  #endif
+#endif
   void* ptr;
   size = m_nc * m_ni * m_nj * m_nk * sizeof(double);
 
@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
         std::cerr << "ERROR READING data on line " << lc + 1 << "\n";
         break;
       }
-      
+
       onesided.push_back(optr);
     } else {
       Sarray* s = new Sarray();
@@ -130,14 +130,13 @@ int main(int argc, char* argv[]) {
   std::cout << "Done with map array output\n";
 #endif
 
-  
 #ifdef ENABLE_CUDA
   cudaStreamSynchronize(0);
 #endif
 #ifdef ENABLE_HIP
   hipStreamSynchronize(0);
 #endif
-  
+
   void* ptr;
 #ifdef ENABLE_CUDA
   if (cudaMallocManaged(&ptr, (6 + 384 + 24 + 48 + 6 + 384 + 6 + 6) *
@@ -157,18 +156,18 @@ int main(int argc, char* argv[]) {
   double *m_sbop, *m_acof, *m_bop, *m_bope, *m_ghcof, *m_acof_no_gp,
       *m_ghcof_no_gp;
   double* tmpa = (double*)ptr;
-  m_sbop = tmpa; 
+  m_sbop = tmpa;
   m_acof = m_sbop + 6;
   m_bop = m_acof + 384;
   m_bope = m_bop + 24;
   m_ghcof = m_bope + 48;
   m_acof_no_gp = m_ghcof + 6;
   m_ghcof_no_gp = m_acof_no_gp + 384;
-  
-  //std::cout << "Init the cof arrays\n";
+
+  // std::cout << "Init the cof arrays\n";
   forallasync(0, (6 + 384 + 24 + 48 + 6 + 384 + 6 + 6),
               [=] __device__(int i) { m_sbop[i] = i / 1000.0; });
-  //std::cout << "Done\n";
+  // std::cout << "Done\n";
 
   for (int i = 1; i < 2; i++) {  // 2 to use all the data in Sarry0.dat
     int* optr = onesided[i];
@@ -194,7 +193,7 @@ int main(int argc, char* argv[]) {
     double* m_sg_str_x = (double*)ptr;
     double* m_sg_str_y = m_sg_str_x + optr[7] - optr[6] + 1;
     forallasync(0, size, [=] __device__(int i) { m_sg_str_x[i] = i / 1000.0; });
-    //std::cout << "Done initilizing m_sg_str_x and y\n" << std::flush;
+    // std::cout << "Done initilizing m_sg_str_x and y\n" << std::flush;
 #ifdef ENABLE_CUDA
     cudaProfilerStart();
 #endif
@@ -219,8 +218,8 @@ int main(int argc, char* argv[]) {
               << arrays[i]["a_Uacc"]->norm() << "\n";
     std::cout << "Norm of output " << std::defaultfloat << std::setprecision(20)
               << arrays[i]["a_Uacc"]->norm() << "\n";
-    const double exact_norm=9.86238393426104e+17;
-    double err = (arrays[i]["a_Uacc"]->norm()-exact_norm)/exact_norm*100;
-    std::cout<<"Error = "<<std::setprecision(2)<<err<<" %\n";
+    const double exact_norm = 9.86238393426104e+17;
+    double err = (arrays[i]["a_Uacc"]->norm() - exact_norm) / exact_norm * 100;
+    std::cout << "Error = " << std::setprecision(2) << err << " %\n";
   }
 }

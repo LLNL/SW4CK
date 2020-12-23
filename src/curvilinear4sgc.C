@@ -879,7 +879,7 @@ void curvilinear4sg_ci(
     // std::cout<<"KSTART END"<<kstart<<" "<<kend<<"\n";
     // forall3GS(IS,JS,KS, [=]RAJA_DEVICE(int i,int j,int k){
     // Use 168 regissters , no spills
-	  Tclass<2> tag2(1.4301);
+    Tclass<2> tag2(1.4301);
     insertEvent(start1);
 #pragma forceinline
     forall3async<__LINE__>(
@@ -1304,7 +1304,7 @@ void curvilinear4sg_ci(
 #ifndef NO_RAJA
     std::cout << "Kernel 2 time " << timeEvent(start1, stop1) << "\n";
 #endif
-    
+
 #ifdef PEEKS_GALORE
     SW4_PEEK;
     SYNC_DEVICE;
@@ -1721,7 +1721,7 @@ void curvilinear4sg_ci(
 #ifndef NO_RAJA
     std::cout << "Kernel 3 time " << timeEvent(start2, stop2) << "\n";
 #endif
-    
+
 #ifdef PEEKS_GALORE
     SW4_PEEK;
     SYNC_DEVICE;
@@ -2803,7 +2803,7 @@ void curvilinear4sg_ci(
 #endif
   }
   SW4_MARK_END("CURVI::cuvilinear4sgc");
-	
+
 #ifdef PEEKS_GALORE
   SW4_PEEK;
   SYNC_DEVICE;

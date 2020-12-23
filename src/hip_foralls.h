@@ -435,11 +435,13 @@ void forall3asyncAT(T1 &range3, LoopBody &&body) {
 template <int N>
 class Tclass {
  public:
-  Tclass(float best_in=0.0){ value=N; best=best_in; }
+  Tclass(float best_in = 0.0) {
+    value = N;
+    best = best_in;
+  }
   int value;
   float best;
 };
-
 
 template <int N, typename Tag, typename Func>
 __global__ void forall3kernel(Tag t, const int start0, const int N0,
@@ -454,12 +456,11 @@ __global__ void forall3kernel(Tag t, const int start0, const int N0,
 template <int N, typename Tag, typename T1, typename T2, typename T3,
           typename LoopBody>
 void forall3async(Tag &t, T1 &irange, T2 &jrange, T3 &krange, LoopBody &&body) {
-  
   if (irange.invalid || jrange.invalid || krange.invalid) return;
-  
+
   dim3 tpb(irange.tpb, jrange.tpb, krange.tpb);
   dim3 blocks(irange.blocks, jrange.blocks, krange.blocks);
-  
+
 #ifdef VERBOSE
   std::cout << "forall launch tpb " << irange.tpb << " " << jrange.tpb << "  "
             << krange.tpb << "\n";
@@ -468,11 +469,11 @@ void forall3async(Tag &t, T1 &irange, T2 &jrange, T3 &krange, LoopBody &&body) {
             << irange.blocks * jrange.blocks * krange.blocks << " "
             << irange.blocks * jrange.blocks * krange.blocks / 120.0 << "\n";
 #endif
-  
-  auto err=hipPeekAtLastError();
-  if (err!=hipSuccess)
+
+  auto err = hipPeekAtLastError();
+  if (err != hipSuccess)
     std::cout << hipGetErrorString(err) << "\n" << std::flush;
-  //std::cout << "Launching kernel..." << std::flush;
+  // std::cout << "Launching kernel..." << std::flush;
   hipEvent_t start, stop;
   hipEventCreate(&start);
   hipEventCreate(&stop);
@@ -483,8 +484,10 @@ void forall3async(Tag &t, T1 &irange, T2 &jrange, T3 &krange, LoopBody &&body) {
   hipEventSynchronize(stop);
   float ms;
   hipEventElapsedTime(&ms, start, stop);
-  std::cout << "Kernel"<<t.value<<" runtime " << ms << " ms Best = "<<t.best<<" factor = "<<int(round(ms/t.best))<<" \n";
-  //std::cout << "Done\n" << std::flush;
+  std::cout << "Kernel" << t.value << " runtime " << ms
+            << " ms Best = " << t.best
+            << " factor = " << int(round(ms / t.best)) << " \n";
+  // std::cout << "Done\n" << std::flush;
 }
 
 #endif  // Guards
