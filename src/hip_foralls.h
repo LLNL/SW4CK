@@ -107,8 +107,8 @@ class RangeGS {
   RangeGS(int istart, int iend) : start(istart), end(iend), tpb(N), blocks(M){};
   int start;
   int end;
-  int blocks;
   int tpb;
+  int blocks;
 };
 
 template <typename Func>

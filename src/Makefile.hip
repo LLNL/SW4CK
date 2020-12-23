@@ -256,10 +256,7 @@ $(builddir)/%.o:./%.C
 	 cd $(builddir); $(CXX) $(CXXFLAGS) -c $< 
 
 clean:
-	/bin/mkdir -p $(optdir)
-	/bin/mkdir -p $(debugdir)
-	cd $(optdir); /bin/rm -f sw4 *.o; cd ../$(debugdir); /bin/rm -f sw4 *.o
-
+	rm sw4ck *.o *.bc *.s *.cui
 # Special rule for the target test
 test:
 	echo "Running tests..."
