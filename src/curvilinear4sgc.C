@@ -147,11 +147,11 @@ void curvilinear4sg_ci(
   using CURV_POL = RAJA::KernelPolicy<RAJA::statement::CudaKernelFixed<
       256,
       RAJA::statement::Tile<
-          0, RAJA::statement::tile_fixed<4>, RAJA::cuda_block_z_loop,
+          0, RAJA::tile_fixed<4>, RAJA::cuda_block_z_loop,
           RAJA::statement::Tile<
-              1, RAJA::statement::tile_fixed<4>, RAJA::cuda_block_y_loop,
+              1, RAJA::tile_fixed<4>, RAJA::cuda_block_y_loop,
               RAJA::statement::Tile<
-                  2, RAJA::statement::tile_fixed<16>, RAJA::cuda_block_x_loop,
+                  2, RAJA::tile_fixed<16>, RAJA::cuda_block_x_loop,
                   RAJA::statement::For<
                       0, RAJA::cuda_thread_z_direct,
                       RAJA::statement::For<

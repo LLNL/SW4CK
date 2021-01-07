@@ -1,0 +1,3 @@
+// the configured options and settings for SW4CK
+#define SW4CK_VERSION_MAJOR @SW4CK_VERSION_MAJOR@
+#define SW4CK_VERSION_MINOR @SW4CK_VERSION_MINOR@

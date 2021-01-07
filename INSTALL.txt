@@ -12,3 +12,18 @@ HIP Build:
 with hipcc in the path and rocm>=3.9.0
 make -f Makefile.hip
 srun -n1 ./sw4ck sw4ck.in
+
+
+Building using Cmake ( Experimental)
+
+CUDA:
+mkdir build && cd build
+cmake -C ../host-configs/lassen.cmake -DENABLE_CUDA=On ../
+lrun -T1 bin/sw4ck ../src/sw4ck.in
+
+CUDA + RAJA:
+mkdir build && cd build
+cmake -C ../host-configs/lassen.cmake -DENABLE_CUDA=On -DENABLE_RAJA=On -DCUDA_ARCH=sm_70 ../
+lrun -T1 bin/sw4ck ../src/sw4ck.in
+
+
