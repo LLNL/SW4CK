@@ -27,3 +27,13 @@ cmake -C ../host-configs/lassen.cmake -DENABLE_CUDA=On -DENABLE_RAJA=On -DCUDA_A
 lrun -T1 bin/sw4ck ../src/sw4ck.in
 
 
+HIP:
+mkdir build && cd build
+cmake -C ../host-configs/corona.cmake -DENABLE_HIP=On ../
+srun -n 1 -p mi60 ./sw4ck ../../src/sw4ck.in
+
+HIP + RAJA :
+mkdir build && cd build
+cmake -C ../host-configs/corona.cmake -DENABLE_HIP=On -DENABLE_RAJA=On ../
+srun -n 1 -p mi60 ./sw4ck ../../src/sw4ck.in
+
