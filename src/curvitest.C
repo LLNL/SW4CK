@@ -67,7 +67,7 @@ void Sarray::init() {
 }
 double Sarray::norm() {
   double ret = 0.0;
-  for (int i = 0; i < size / 8; i++) ret += m_data[i] * m_data[i];
+  for (size_t i = 0; i < size / 8; i++) ret += m_data[i] * m_data[i];
   return ret;
 }
 
