@@ -1,0 +1,15 @@
+srun -n 1 -p mi60 bin/sw4ck ../src/sw4ck.in
+Reading from file ../src/sw4ck.in
+Launching sw4 kernels
+
+Kernel 1 time 21.1281
+Kernel 2 time 30.2958
+Kernel 3 time 37.0292
+Kernel 4 time 28.3902
+Kernel 5 time 22.4971
+
+Total kernel runtime = 139
+
+Norm of output 9.86238e+17
+Norm of output 986238393426104192
+Error = 1.3e-14 %

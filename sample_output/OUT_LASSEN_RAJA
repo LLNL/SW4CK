@@ -1,0 +1,15 @@
+lrun -T1 bin/sw4ck ../src/sw4ck.in
+Reading from file ../src/sw4ck.in
+Launching sw4 kernels
+
+Kernel 1 time 6.74256
+Kernel 2 time 1.70413
+Kernel 3 time 1.66358
+Kernel 4 time 1.31334
+Kernel 5 time 8.66134
+
+Total kernel runtime = 20
+
+Norm of output 9.86238e+17
+Norm of output 986238393426104192
+Error = 1.3e-14 %
