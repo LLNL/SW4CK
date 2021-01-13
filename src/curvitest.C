@@ -4,6 +4,7 @@
 #include <map>
 #include <sstream>
 #include <vector>
+#include <chrono>
 #define float_sw4 double
 #include "SW4CKConfig.h"
 #include "foralls.h"
@@ -169,7 +170,7 @@ int main(int argc, char* argv[]) {
               [=] __device__(int i) { m_sbop[i] = i / 1000.0; });
   // std::cout << "Done\n";
 
-  for (int i = 1; i < 2; i++) {  // 2 to use all the data in Sarry0.dat
+  for (int i = 1; i < 2; i++) {  // 0 has the smaller datatset
     int* optr = onesided[i];
     double* alpha_ptr = arrays[i]["a_AlphaVE_0"]->m_data;
     double* mua_ptr = arrays[i]["mMuVE_0"]->m_data;
@@ -197,7 +198,8 @@ int main(int argc, char* argv[]) {
 #ifdef ENABLE_CUDA
     cudaProfilerStart();
 #endif
-    std::cout << "Launching sw4 kernels\n" << std::flush;
+    std::cout << "Launching sw4 kernels\n\n" << std::flush;
+    auto start = std::chrono::high_resolution_clock::now();
     for (int p = 0; p < 1; p++)
       curvilinear4sg_ci(optr[6], optr[7], optr[8], optr[9], optr[10], optr[11],
                         alpha_ptr, mua_ptr, lambdaa_ptr, met_ptr, jac_ptr,
@@ -214,6 +216,8 @@ int main(int argc, char* argv[]) {
     // cudaProfilerStop();
     hipFree(ptr);
 #endif
+    auto stop = std::chrono::high_resolution_clock::now();
+    std::cout<<"\nTotal kernel runtime = "<<std::chrono::duration_cast<std::chrono::milliseconds>(stop-start).count()<<"\n\n";
     std::cout << "Norm of output " << std::hexfloat
               << arrays[i]["a_Uacc"]->norm() << "\n";
     std::cout << "Norm of output " << std::defaultfloat << std::setprecision(20)

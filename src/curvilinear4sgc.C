@@ -197,9 +197,15 @@ void curvilinear4sg_ci(
 #if defined(NO_RAJA)
       // LOOP -1
       // 32,4,2 is 4% slower. 32 4 4 does not fit
+#ifdef ENABLE_CUDA
+      Range<16> I(ifirst + 2, ilast - 1);
+      Range<4> J(jfirst + 2, jlast - 1);
+      Range<6> K(1, 6 + 1);  // This was 6
+#else
       Range<64> I(ifirst + 2, ilast - 1);
       Range<2> J(jfirst + 2, jlast - 1);
       Range<2> K(1, 6 + 1);  // This was 6
+#endif
       // Uses 166 registers, no spills
       Tclass<1> tag1(4.6441);
       insertEvent(start0);
@@ -852,9 +858,7 @@ void curvilinear4sg_ci(
             lu(3, i, j, k) = a1 * lu(3, i, j, k) + sgn * r3 * ijac;
           });  // End of curvilinear4sg_ci LOOP -1
       insertEvent(stop0);
-#ifndef NO_RAJA
       std::cout << "Kernel 1 time " << timeEvent(start0, stop0) << "\n";
-#endif
     }
 #ifdef PEEKS_GALORE
     SW4_PEEK;
@@ -1301,9 +1305,7 @@ void curvilinear4sg_ci(
           lu(1, i, j, k) = a1 * lu(1, i, j, k) + sgn * r1 * ijac;
         });  // END OF LOOP 0
     insertEvent(stop1);
-#ifndef NO_RAJA
     std::cout << "Kernel 2 time " << timeEvent(start1, stop1) << "\n";
-#endif
 
 #ifdef PEEKS_GALORE
     SW4_PEEK;
@@ -1718,9 +1720,7 @@ void curvilinear4sg_ci(
           lu(2, i, j, k) = a1 * lu(2, i, j, k) + sgn * r2 * ijac;
         });  // END OF LOOP 1
     insertEvent(stop2);
-#ifndef NO_RAJA
     std::cout << "Kernel 3 time " << timeEvent(start2, stop2) << "\n";
-#endif
 
 #ifdef PEEKS_GALORE
     SW4_PEEK;
@@ -2146,9 +2146,7 @@ void curvilinear4sg_ci(
           lu(3, i, j, k) = a1 * lu(3, i, j, k) + sgn * r3 * ijac;
         });  // End of curvilinear4sg_ci LOOP 2
     insertEvent(stop3);
-#ifndef NO_RAJA
     std::cout << "Kernel 4 time " << timeEvent(start3, stop3) << "\n";
-#endif
   }
 #ifdef PEEKS_GALORE
   SW4_PEEK;
@@ -2171,9 +2169,15 @@ void curvilinear4sg_ci(
 #if defined(NO_RAJA)
     // LOOP -1
     // 32,4,2 is 4% slower. 32 4 4 does not fit
+#ifdef ENABLE_CUDA
+    Range<16> II(ifirst + 2, ilast - 1);
+    Range<4> JJ(jfirst + 2, jlast - 1);
+    Range<6> KK(nk - 5, nk + 1);  // THIS WAS 6
+#else
     Range<64> II(ifirst + 2, ilast - 1);
     Range<2> JJ(jfirst + 2, jlast - 1);
     Range<2> KK(nk - 5, nk + 1);  // THIS WAS 6
+#endif
     // Register count goes upto 254. Runtime goes up by factor of 2.8X
     //     Range<16> JJ2(jfirst + 2, jlast - 1);
     //     forall2async(II, JJ2,[=] RAJA_DEVICE(int i, int j) {
@@ -2798,9 +2802,7 @@ void curvilinear4sg_ci(
           lu(3, i, j, k) = a1 * lu(3, i, j, k) + sgn * r3 * ijac;
         });
     insertEvent(stop4);
-#ifndef NO_RAJA
     std::cout << "Kernel 5 time " << timeEvent(start4, stop4) << "\n";
-#endif
   }
   SW4_MARK_END("CURVI::cuvilinear4sgc");
 

@@ -2,7 +2,7 @@
 #add_executable(sw4ck curvitest.C)
 if (ENABLE_CUDA)
 set(_cuda_arch "sm_70")
-set(CMAKE_CUDA_FLAGS "-restrict  -arch ${_cuda_arch} -std=c++11 --expt-extended-lambda -G" CACHE STRING "" FORCE)
+set(CMAKE_CUDA_FLAGS "-restrict  -arch=${_cuda_arch} -std=c++11 --expt-extended-lambda " CACHE STRING "" FORCE)
 blt_add_executable(NAME sw4ck 
   SOURCES curvitest.C curvilinear4sgc.C Events.C 
   DEPENDS_ON cuda)

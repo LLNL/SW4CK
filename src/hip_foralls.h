@@ -453,6 +453,8 @@ __global__ void forall3kernel(Tag t, const int start0, const int N0,
   if ((tid0 < N0) && (tid1 < N1) && (tid2 < N2)) f(t, tid0, tid1, tid2);
 }
 
+
+#ifdef COMPARE_KERNEL_TIMES
 template <int N, typename Tag, typename T1, typename T2, typename T3,
           typename LoopBody>
 void forall3async(Tag &t, T1 &irange, T2 &jrange, T3 &krange, LoopBody &&body) {
@@ -489,5 +491,32 @@ void forall3async(Tag &t, T1 &irange, T2 &jrange, T3 &krange, LoopBody &&body) {
             << " factor = " << int(round(ms / t.best)) << " \n";
   // std::cout << "Done\n" << std::flush;
 }
+#else
+template <int N, typename Tag, typename T1, typename T2, typename T3,
+          typename LoopBody>
+void forall3async(Tag &t, T1 &irange, T2 &jrange, T3 &krange, LoopBody &&body) {
+  if (irange.invalid || jrange.invalid || krange.invalid) return;
+
+  dim3 tpb(irange.tpb, jrange.tpb, krange.tpb);
+  dim3 blocks(irange.blocks, jrange.blocks, krange.blocks);
+
+#ifdef VERBOSE
+  std::cout << "forall launch tpb " << irange.tpb << " " << jrange.tpb << "  "
+            << krange.tpb << "\n";
+  std::cout << "forall launch blocks " << irange.blocks << "  " << jrange.blocks
+            << " " << krange.blocks << "="
+            << irange.blocks * jrange.blocks * krange.blocks << " "
+            << irange.blocks * jrange.blocks * krange.blocks / 120.0 << "\n";
+#endif
+
+  auto err = hipPeekAtLastError();
+  if (err != hipSuccess)
+    std::cout << hipGetErrorString(err) << "\n" << std::flush;
+  // std::cout << "Launching kernel..." << std::flush;
+  hipLaunchKernelGGL(forall3kernel<N>, blocks, tpb, 0, 0,   t,
+                        irange.start, irange.end, jrange.start, jrange.end,
+                        krange.start, krange.end, body);
+   }
+#endif
 
 #endif  // Guards
