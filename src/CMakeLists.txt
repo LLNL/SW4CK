@@ -23,7 +23,6 @@ target_include_directories(sw4ck PUBLIC
 if (ENABLE_RAJA)
     add_compile_options(-DENABLE_RAJA=1)
     target_link_libraries(sw4ck PUBLIC RAJA)
-    set_property(TARGET RAJA PROPERTY CUDA_ARCHITECTURES 70)
 else()
     blt_add_target_compile_flags(TO sw4ck FLAGS -DNO_RAJA=1)
 endif()

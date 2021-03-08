@@ -30,10 +30,39 @@ lrun -T1 bin/sw4ck ../src/sw4ck.in
 HIP:
 mkdir build && cd build
 cmake -C ../host-configs/corona.cmake -DENABLE_HIP=On ../
+make -j 4
 srun -n 1 -p mi60 bin/sw4ck ../src/sw4ck.in
 
 HIP + RAJA :
 mkdir build && cd build
 cmake -C ../host-configs/corona.cmake -DENABLE_HIP=On -DENABLE_RAJA=On ../
+make -j 4
 srun -n 1 -p mi60 bin/sw4ck ../src/sw4ck.in
 
+***** BUILDING ON RZWHAMO ***************
+
+CUDA:
+mkdir build && cd build
+cmake -C ../host-configs/whamo_cuda.cmake -DENABLE_CUDA=On ../
+make -j 4
+srun -n 1 -p nvidia bin/sw4ck ../src/sw4ck.in
+
+
+CUDA + RAJA :
+mkdir build && cd build
+cmake -C ../host-configs/whamo_cuda.cmake -DENABLE_CUDA=On -DENABLE_RAJA=On -DCUDA_ARCH=sm_70 ../
+make -j 4
+srun -n 1 -p nvidia bin/sw4ck ../src/sw4ck.in
+
+
+HIP:
+mkdir build && cd build
+cmake -C ../host-configs/whamo_hip.cmake -DENABLE_HIP=On ../
+make -j 4
+srun -n 1 -p amd bin/sw4ck ../src/sw4ck.in
+
+HIP + RAJA :
+mkdir build && cd build
+cmake -C ../host-configs/whamo_hip.cmake -DENABLE_HIP=On  -DENABLE_RAJA=On ../
+make -j 4
+srun -n 1 -p amd bin/sw4ck ../src/sw4ck.in
