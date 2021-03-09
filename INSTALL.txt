@@ -66,3 +66,38 @@ mkdir build && cd build
 cmake -C ../host-configs/whamo_hip.cmake -DENABLE_HIP=On  -DENABLE_RAJA=On ../
 make -j 4
 srun -n 1 -p amd bin/sw4ck ../src/sw4ck.in
+
+
+****** MEASURING REGISTER USAGE AND SPILLAGE ****************************8
+
+
+CUDA + RAJA :
+mkdir build && cd build
+cmake -C ../host-configs/whamo_cuda.cmake -DENABLE_CUDA=On -DENABLE_RAJA=On -DCUDA_ARCH=sm_70 -DENABLE_SPILL_WARNS=On ..
+make 
+Sample output during build:
+ptxas info    : Used 254 registers, 616 bytes cmem[0]
+ptxas info    : Compiling entry function '_ZN4RAJA8internal23CudaKernelLauncherFixedILm256ENS0_8LoopDataIN4camp5tupleIJNS_4SpanINS_9Iterators16numeric_iteratorIllPlEElEESA_SA_EEENS4_IJEEEJZ17curvilinear4sg_ciiiiiiiPdSD_SD_SD_SD_SD_PiSD_SD_SD_SD_SD_SD_SD_icEUliiiE2_EEENS0_25CudaStatementListExecutorISG_NS3_4listIJNS_9statement4TileILl0ENS_10tile_fixedILl4EEENS_19cuda_block_xyz_loopILi2EEEJNSK_ILl1ESM_NSN_ILi1EEEJNSK_ILl2ENSL_ILl16EEENSN_ILi0EEEJNSJ_3ForILl0ENS_22cuda_thread_xyz_directILi2EEEJNSS_ILl1ENST_ILi1EEEJNSS_ILl2ENST_ILi0EEEJNSJ_6LambdaILl0EJEEEEEEEEEEEEEEEEEEEEEEEENS0_9LoopTypesINSI_IJvvvEEES17_EEEEEEvT0_' for 'sm_70'
+ptxas info    : Function properties for _ZN4RAJA8internal23CudaKernelLauncherFixedILm256ENS0_8LoopDataIN4camp5tupleIJNS_4SpanINS_9Iterators16numeric_iteratorIllPlEElEESA_SA_EEENS4_IJEEEJZ17curvilinear4sg_ciiiiiiiPdSD_SD_SD_SD_SD_PiSD_SD_SD_SD_SD_SD_SD_icEUliiiE2_EEENS0_25CudaStatementListExecutorISG_NS3_4listIJNS_9statement4TileILl0ENS_10tile_fixedILl4EEENS_19cuda_block_xyz_loopILi2EEEJNSK_ILl1ESM_NSN_ILi1EEEJNSK_ILl2ENSL_ILl16EEENSN_ILi0EEEJNSJ_3ForILl0ENS_22cuda_thread_xyz_directILi2EEEJNSS_ILl1ENST_ILi1EEEJNSS_ILl2ENST_ILi0EEEJNSJ_6LambdaILl0EJEEEEEEEEEEEEEEEEEEEEEEEENS0_9LoopTypesINSI_IJvvvEEES17_EEEEEEvT0_
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+
+
+
+
+HIP+RAJA:
+mkdir build && cd build
+cmake -C ../host-configs/whamo_hip.cmake -DENABLE_HIP=On -DENABLE_RAJA=On -DENABLE_SPILL_WARNS=On ../
+make (Build will fail at link )
+grep vgpr_ src/curvilinear4sgc-hip-amdgcn-amd-amdhsa-gfx906.s
+Sample output:
+    .vgpr_count:     256
+    .vgpr_spill_count: 37
+    .vgpr_count:     256
+    .vgpr_spill_count: 648
+    .vgpr_count:     256
+    .vgpr_spill_count: 772
+    .vgpr_count:     256
+    .vgpr_spill_count: 624
+    .vgpr_count:     256
+    .vgpr_spill_count: 42
+
