@@ -203,6 +203,12 @@ void forall3(T1 &irange, T2 &jrange, T3 &krange, LoopBody &&body) {
 }
 
 template <typename T1, typename T2, typename T3, typename LoopBody>
+void forall3asyncnotimer(T1 &irange, T2 &jrange, T3 &krange, LoopBody &&body) {
+  forall3async(irange, jrange, krange, body);
+}
+  
+
+template <typename T1, typename T2, typename T3, typename LoopBody>
 void forall3GSasync(T1 &irange, T2 &jrange, T3 &krange, LoopBody &&body) {
   dim3 tpb(irange.tpb, jrange.tpb, krange.tpb);
   dim3 blocks(irange.blocks, jrange.blocks, krange.blocks);

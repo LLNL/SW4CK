@@ -18,6 +18,7 @@ class Sarray {
   Sarray(int nc, int ibeg, int iend, int jbeg, int jend, int kbeg, int kend);
   std::string fill(std::istringstream& iss);
   void init();
+  void init2();
   double norm();
   int m_nc, m_ni, m_nj, m_nk;
   int m_ib, m_ie, m_jb, m_je, m_kb, m_ke;
@@ -26,6 +27,7 @@ class Sarray {
   double* m_data;
   size_t size;
   int g;
+  
 };
 
 std::string Sarray::fill(std::istringstream& iss) {
@@ -65,6 +67,37 @@ void Sarray::init() {
   double* lm_data = m_data;
   forallasync(0, size / 8,
               [=] __device__(int i) { lm_data[i] = sin(double(i)); });
+}
+
+void Sarray::init2() {
+
+  Range<64> I(0,m_ni);
+  Range<2> J(0,m_nj);
+  Range<2> K(0,m_nk); 
+
+  double dx = 0.001;
+    int nc = m_nc;
+  int offi = nc;
+  int offj = nc*m_ni;
+  int offk = nc*m_ni*m_nj;
+
+  double *data = m_data;
+  
+ 
+  forall3asyncnotimer(
+	       I, J, K, [=] __device__(int i, int j, int k) {
+		 for (int c=0;c<nc;c++){
+		   
+		   int indx = c + i * offi + j * offj +
+		     k * offk;
+		   double x = i*dx;
+		   double y = j*dx;
+		   double z = k*dx;
+		   double f = sin(x)*sin(y)*sin(z);
+		   data[indx]=f;
+	       }
+	       });
+  
 }
 double Sarray::norm() {
   double ret = 0.0;
@@ -125,17 +158,19 @@ int main(int argc, char* argv[]) {
       std::cout << x.first << " " << x.second->g << " " << x.second->m_npts
                 << "\n";
 #endif
-      x.second->init();
+      x.second->init2();
     }
-#ifdef VERBOSE
-  std::cout << "Done with map array output\n";
-#endif
+
 
 #ifdef ENABLE_CUDA
   cudaStreamSynchronize(0);
-#endif
+ #endif
 #ifdef ENABLE_HIP
   hipStreamSynchronize(0);
+#endif
+
+#ifdef VERBOSE
+  std::cout << "Done with map array output\n";
 #endif
 
   void* ptr;
@@ -222,7 +257,8 @@ int main(int argc, char* argv[]) {
               << arrays[i]["a_Uacc"]->norm() << "\n";
     std::cout << "Norm of output " << std::defaultfloat << std::setprecision(20)
               << arrays[i]["a_Uacc"]->norm() << "\n";
-    const double exact_norm = 9.86238393426104e+17;
+    //const double exact_norm = 9.86238393426104e+17;
+    const double exact_norm = 202.0512747393526638; // for init2
     double err = (arrays[i]["a_Uacc"]->norm() - exact_norm) / exact_norm * 100;
     std::cout << "Error = " << std::setprecision(2) << err << " %\n";
   }

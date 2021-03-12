@@ -164,9 +164,24 @@ void forall3(int start0, int end0, int start1, int end1, int start2, int end2,
   printf("Launching the kernel 3d \n");
   // forall3kernel<<<blocks, tpb>>>(start0, end0, start1, end1, start2, end2,
   // body);
-  hipLaunchKernelGGL(forall3kernel, blocks, tpb, 0, 0, start0, end0, start1,
+  hipLaunchKernelGGL(forall3kernel, blocks, tpb, 0, 0, 0,start0, end0, start1,
                      end1, start2, end2, body);
   hipDeviceSynchronize();
+}
+
+template <typename T1, typename T2, typename T3, typename LoopBody>
+void forall3asyncnotimer(T1 &irange, T2 &jrange, T3 &krange, LoopBody &&body) {
+  dim3 tpb(irange.tpb, jrange.tpb, krange.tpb);
+  dim3 blocks(irange.blocks, jrange.blocks, krange.blocks);
+
+  // forall3kernel<<<blocks, tpb>>>(irange.start, irange.end, jrange.start,
+  //                              jrange.end, krange.start, krange.end, body);
+  //hipEvent_t start, stop;
+  //hipEventCreate(&start);
+  //hipEventCreate(&stop);
+  hipLaunchKernelGGL(forall3kernel, blocks, tpb, 0, 0,
+                        irange.start, irange.end, jrange.start, jrange.end,
+                        krange.start, krange.end, body);
 }
 
 template <typename T1, typename T2, typename T3, typename LoopBody>

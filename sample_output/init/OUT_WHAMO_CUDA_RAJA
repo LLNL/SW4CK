@@ -1,0 +1,15 @@
+srun -n 1 -p nvidia bin/sw4ck ../src/sw4ck.in
+Reading from file ../src/sw4ck.in
+Launching sw4 kernels
+
+Kernel 1 time 6.92634
+Kernel 2 time 1.70496
+Kernel 3 time 1.74182
+Kernel 4 time 1.36806
+Kernel 5 time 8.98355
+
+Total kernel runtime = 21
+
+Norm of output 0x1.b5fa52fe0079fp+59
+Norm of output 986238393426104192
+Error = 1.3e-14 %

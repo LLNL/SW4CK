@@ -12,11 +12,11 @@ HSA_ROOT_DIR = /opt/rocm-4.0.1/hsa
 
 # --save-temps aborts compilation. -fno-cray fixes this. Incorrect and slow results with CC. Correct slower results wth CC -fno-cray
 # Add -fsave-loopmark for optimization report
-MORE_FLAGS = -I${ROCM_PATH}/include -O3  -x hip -Winconsistent-missing-override  -DNO_RAJA=1 -Wall -Wno-unknown-pragmas --rocm-path=/opt/rocm-4.0.1 --offload-arch=gfx906 -fsave-loopmark -fno-cray
+MORE_FLAGS = -I${ROCM_PATH}/include -Ofast  -x hip -Winconsistent-missing-override  -Wall -Wno-unknown-pragmas --rocm-path=/opt/rocm-4.0.1 --offload-arch=gfx906 -fsave-loopmark -fno-cray 
 
 LINKFLAGS =  -std=c++11 
 
-EXTRA_CXX_FLAGS =  -I$(RAJA_LOCATION)/include  -DENABLE_HIP $(MORE_FLAGS) -Winconsistent-missing-override 
+EXTRA_CXX_FLAGS =  -I$(RAJA_LOCATION)/include  -DENABLE_HIP $(MORE_FLAGS) -DNO_RAJA=1
 
 
 EXTRA_LINK_FLAGS = -L $(RAJA_LOCATION)/lib -lamdhip64
