@@ -2,13 +2,16 @@ srun -n 1 -p amd ./sw4ck sw4ck.in
 Reading from file sw4ck.in
 Launching sw4 kernels
 
-Kernel 1 time 58.0426
-Kernel 2 time 24.1525
-Kernel 3 time 23.6964
-Kernel 4 time 17.5566
-Kernel 5 time 50.5733
+Kernel 1 time 57.4456
+Kernel 2 time 24.1552
+Kernel 3 time 23.7349
+Kernel 4 time 17.6128
+Kernel 5 time 50.536
 
-Total kernel runtime = 174
+Total kernel runtime = 173
+
+MIN = -1.573545887801061974e-05
+MAX = 0.010639705916308216105
 
 Norm of output 0x1.941a40ae9d6fap+7
 Norm of output 202.05127473518206216

@@ -4,7 +4,9 @@
 #include <map>
 #include <sstream>
 #include <vector>
+#include <tuple>
 #include <chrono>
+#include <limits>
 #define float_sw4 double
 #include "SW4CKConfig.h"
 #include "foralls.h"
@@ -20,6 +22,7 @@ class Sarray {
   void init();
   void init2();
   double norm();
+  std::tuple<double,double> minmax();
   int m_nc, m_ni, m_nj, m_nk;
   int m_ib, m_ie, m_jb, m_je, m_kb, m_ke;
   ssize_t m_base;
@@ -103,6 +106,15 @@ double Sarray::norm() {
   double ret = 0.0;
   for (size_t i = 0; i < size / 8; i++) ret += m_data[i] * m_data[i];
   return ret;
+}
+std::tuple<double,double> Sarray::minmax(){
+  double min = std::numeric_limits<double>::max();
+  double max = std::numeric_limits<double>::min();
+  for (size_t i = 0; i < size / 8; i++) {
+    min=std::min(min,m_data[i]);
+    max=std::max(max,m_data[i]);
+  }
+  return std::make_tuple(min,max);
 }
 
 void curvilinear4sg_ci(
@@ -253,13 +265,17 @@ int main(int argc, char* argv[]) {
 #endif
     auto stop = std::chrono::high_resolution_clock::now();
     std::cout<<"\nTotal kernel runtime = "<<std::chrono::duration_cast<std::chrono::milliseconds>(stop-start).count()<<"\n\n";
+    auto  minmax =arrays[i]["a_Uacc"]->minmax();
+    std::cout << "MIN = " << std::defaultfloat << std::setprecision(20)
+              << std::get<0>(minmax)<<"\nMAX = "<<std::get<1>(minmax)  << "\n\n";
+    double norm=arrays[i]["a_Uacc"]->norm();
     std::cout << "Norm of output " << std::hexfloat
-              << arrays[i]["a_Uacc"]->norm() << "\n";
+              << norm  << "\n";
     std::cout << "Norm of output " << std::defaultfloat << std::setprecision(20)
-              << arrays[i]["a_Uacc"]->norm() << "\n";
+              << norm  << "\n";
     //const double exact_norm = 9.86238393426104e+17;
     const double exact_norm = 202.0512747393526638; // for init2
-    double err = (arrays[i]["a_Uacc"]->norm() - exact_norm) / exact_norm * 100;
+    double err = (norm - exact_norm) / exact_norm * 100;
     std::cout << "Error = " << std::setprecision(2) << err << " %\n";
   }
 }
