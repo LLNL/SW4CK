@@ -1,0 +1,7 @@
+*.bc
+*.cui
+*.o
+*.s
+*.lst
+sw4ck
+sw4ck+pat
