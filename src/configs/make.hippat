@@ -1,0 +1,36 @@
+#use make -f Makefile.hippat
+#
+#
+PAT_INCLUDES=$(shell pat_opts include hipcc)
+PRE_COMPILE=$(shell pat_opts pre_compile hipcc)
+POST_COMPILE=$(shell pat_opts post_compile hipcc)
+PRE_LINK=$(shell pat_opts pre_link hipcc)
+POST_LINK=$(shell pat_opts post_link hipcc)
+
+
+
+$(info PAT_INCLUDES is  $(PAT_INCLUDES))
+$(info PRE_COMPILE is  $(PRE_COMPILE))
+$(info POST_COMPILE is  $(POST_COMPILE))
+$(info PRE_LINK is  $(PRE_LINK))
+$(info POST_LINK is  $(POST_LINK))
+
+
+LINKER = hipcc $(PRE_LINK)
+CXX = $(PREP) hipcc
+RAJA_LOCATION = /home/users/coe0145/RAJA/Dev2/raja/install_906
+
+HIP_ROOT_DIR = $(HIP_PATH)
+
+HSA_ROOT_DIR = /opt/rocm-4.0.1/hsa
+
+GCC_LINK_LINE = -L $(HIP_ROOT_DIR)/lib -L $(HSA_ROOT_DIR)/lib -lhsa-runtime64  -lm -lstdc++ -ldl
+
+
+MORE_FLAGS = -I${ROCM_PATH}/include -isystem /opt/rocm-4.0.1/llvm/lib/clang/11.0.0/include/.. -isystem /opt/rocm-4.0.1/hsa/include -isystem /opt/rocm-4.0.1/hip/include -D__HIP_ARCH_GFX906__=1 --cuda-gpu-arch=gfx906 -O3 -x hip -Winconsistent-missing-override --amdgpu-target=gfx906 --save-temps -fgpu-rdc -DNO_RAJA=1 -Wall -Wno-unknown-pragmas $(PAT_INCLUDES) $(PRE_COMPILE)
+LINKFLAGS =  -std=c++11  --amdgpu-target=gfx906 -fgpu-rdc
+EXTRA_CXX_FLAGS =  -O3  -x hip  -std=c++11 -I$(RAJA_LOCATION)/include  -DENABLE_HIP $(MORE_FLAGS) -Winconsistent-missing-override 
+
+EXTRA_CXX_FLAGS2 =  -O3  -std=c++11 -I $(CUDA_HOME)/include -I$(RAJA_LOCATION)/include  -DRAJA_USE_RESTRICT_PTR -DCUDA_CODE -DENABLE_HIP   $(MORE_FLAGS)
+
+EXTRA_LINK_FLAGS = -L $(RAJA_LOCATION)/lib $(GCC_LINK_LINE) $(POST_LINK)
