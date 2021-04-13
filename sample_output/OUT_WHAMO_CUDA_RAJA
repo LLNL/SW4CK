@@ -1,12 +1,14 @@
 srun -n 1 -p nvidia bin/sw4ck ../src/sw4ck.in
+CUDA(11020)
+RAJA(0.13.0)
 Reading from file ../src/sw4ck.in
 Launching sw4 kernels
 
-Kernel 1 time 6.68877
-Kernel 2 time 1.66912
-Kernel 3 time 1.68346
-Kernel 4 time 1.33427
-Kernel 5 time 8.64051
+Kernel 1 time 6.78707
+Kernel 2 time 1.59642
+Kernel 3 time 2.10944
+Kernel 4 time 1.47456
+Kernel 5 time 8.79206
 
 Total kernel runtime = 20
 

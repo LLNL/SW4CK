@@ -200,7 +200,7 @@ void curvilinear4sg_ci(
 #ifdef ENABLE_CUDA
       Range<16> I(ifirst + 2, ilast - 1);
       Range<4> J(jfirst + 2, jlast - 1);
-      Range<6> K(1, 6 + 1);  // This was 6
+      Range<3> K(1, 6 + 1);  // This was 6
 #else
       Range<64> I(ifirst + 2, ilast - 1);
       Range<2> J(jfirst + 2, jlast - 1);

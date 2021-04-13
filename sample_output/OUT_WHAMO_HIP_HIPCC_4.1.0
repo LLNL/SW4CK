@@ -1,16 +1,15 @@
 srun -n 1 bin/sw4ck ../src/sw4ck.in
 HIP(4.1.21072)
-RAJA(0.13.0)
 Reading from file ../src/sw4ck.in
 Launching sw4 kernels
 
-Kernel 1 time 22.1395
-Kernel 2 time 38.2365
-Kernel 3 time 41.1278
-Kernel 4 time 31.4211
-Kernel 5 time 22.6803
+Kernel 1 time 46.8149
+Kernel 2 time 19.973
+Kernel 3 time 26.9147
+Kernel 4 time 27.2626
+Kernel 5 time 126.885
 
-Total kernel runtime = 155
+Total kernel runtime = 248
 
 MIN = -1.5735458151501329865e-05
 MAX = 0.010639705916308216105

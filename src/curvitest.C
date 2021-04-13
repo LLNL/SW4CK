@@ -10,9 +10,30 @@
 #define float_sw4 double
 #include "SW4CKConfig.h"
 #include "foralls.h"
+#ifndef NO_RAJA
+#include "RAJA/RAJA.hpp"
+#endif
 #ifdef ENABLE_CUDA
 #include <cuda_profiler_api.h>
 #endif
+#ifdef ENABLE_CUDA
+void CheckError(cudaError_t const err, const char *file, char const *const fun,
+                const int line);
+#elif ENABLE_HIP
+void CheckError(hipError_t const err, const char *file, char const *const fun,
+                const int line);
+#endif
+
+
+#define CheckDeviceError(err) \
+  CheckError(err, __FILE__, __FUNCTION__, __LINE__)
+
+
+
+
+
+
+
 
 class Sarray {
  public:
@@ -130,7 +151,7 @@ void curvilinear4sg_ci(
 int main(int argc, char* argv[]) {
   std::ifstream iff;
   iff.open(argv[1]);
-
+  promo_version();
   std::map<std::string, Sarray*> arrays[10];
   std::vector<int*> onesided;
   std::string line;
@@ -254,12 +275,16 @@ int main(int argc, char* argv[]) {
                         m_ghcof_no_gp, m_acof_no_gp, m_ghcof_no_gp, m_sg_str_x,
                         m_sg_str_y, nkg, op);
 #ifdef ENABLE_CUDA
-    cudaStreamSynchronize(0);
+CheckDeviceError(cudaStreamSynchronize(0));
     cudaProfilerStop();
+    CheckDeviceError(cudaPeekAtLastError());
+    CheckDeviceError(cudaStreamSynchronize(0));
     cudaFree(ptr);
 #endif
 #ifdef ENABLE_HIP
-    hipStreamSynchronize(0);
+    CheckDeviceError(hipStreamSynchronize(0));
+    CheckDeviceError(hipPeekAtLastError());
+    CheckDeviceError(hipStreamSynchronize(0));
     // cudaProfilerStop();
     hipFree(ptr);
 #endif
@@ -279,3 +304,38 @@ int main(int argc, char* argv[]) {
     std::cout << "Error = " << std::setprecision(2) << err << " %\n";
   }
 }
+void promo_version(){
+  std::stringstream s;
+#ifdef ENABLE_HIP
+  s<<"HIP("<<HIP_VERSION_MAJOR<<"."<<HIP_VERSION_MINOR<<"."<<HIP_VERSION_PATCH<<")\n";
+#elif ENABLE_CUDA
+  s<<"CUDA("<<CUDA_VERSION<<")\n";
+#else
+  s<<"Unknown programming model\n";
+#endif
+#ifndef NO_RAJA
+s<<"RAJA("<<RAJA_VERSION_MAJOR<<"."<<RAJA_VERSION_MINOR<<"."<<RAJA_VERSION_PATCHLEVEL<<")\n";
+#endif
+std::cout<<s.str();
+  
+}
+
+#ifdef ENABLE_CUDA
+void CheckError(cudaError_t const err, const char *file, char const *const fun,
+                const int line) {
+  if (err) {
+    std::cerr << "CUDA Error Code[" << err << "]: " << cudaGetErrorString(err)
+              << " " << file << " " << fun << " Line number:  " << line << "\n";
+    abort();
+  }
+}
+#elif ENABLE_HIP
+void CheckError(hipError_t const err, const char *file, char const *const fun,
+                const int line) {
+  if (err) {
+    std::cerr << "HIP Error Code[" << err << "]: " << hipGetErrorString(err)
+              << " " << file << " " << fun << " Line number:  " << line << "\n";
+    abort();
+  }
+}
+#endif
