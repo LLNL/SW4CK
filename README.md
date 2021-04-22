@@ -23,9 +23,9 @@ Releases
 
 Code of Conduct
 ------------------------
-Please note that Spack has a
+Please note that SW4CK has a
 [**Code of Conduct**](.github/CODE_OF_CONDUCT.md). By participating in
-the Spack community, you agree to abide by its rules.
+the SW4CK community, you agree to abide by its rules.
 
 
 Authors
