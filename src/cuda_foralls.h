@@ -1,3 +1,9 @@
+//////////////////////////////////////////////////////////////////////////////
+//// Copyright (c) 2021, Lawrence Livermore National Security, LLC and SW4CK
+//// project contributors. See the COPYRIGHT file for details.
+////
+//// SPDX-License-Identifier: GPL-2.0-only
+////////////////////////////////////////////////////////////////////////////////
 #ifndef __CUDA_FORALLS_H__
 #define __CUDA_FORALLS_H__
 #include <fstream>
