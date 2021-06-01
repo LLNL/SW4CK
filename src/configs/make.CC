@@ -1,6 +1,6 @@
 #use make -f Makefile.CC
-LINKER = CC
-CXX = $(PREP) CC
+LINKER = /usr/tce/packages/cce-tce/cce-11.0.4/bin/crayCC
+CXX = $(PREP) /usr/tce/packages/cce-tce/cce-11.0.4/bin/crayCC
 RAJA_LOCATION = /home/users/coe0145/RAJA/Dev2/raja/install_906
 
 HIP_ROOT_DIR = $(HIP_PATH)
@@ -12,7 +12,7 @@ HSA_ROOT_DIR = /opt/rocm-4.0.1/hsa
 
 # --save-temps aborts compilation. -fno-cray fixes this. Incorrect and slow results with CC. Correct slower results wth CC -fno-cray
 # Add -fsave-loopmark for optimization report
-MORE_FLAGS = -I${ROCM_PATH}/include -Ofast  -x hip -Winconsistent-missing-override  -Wall -Wno-unknown-pragmas --rocm-path=/opt/rocm-4.0.1 --offload-arch=gfx906 -fsave-loopmark -fno-cray
+MORE_FLAGS = -I${ROCM_PATH}/include -Ofast  -x hip -Winconsistent-missing-override  -Wall -Wno-unknown-pragmas --rocm-path=/opt/rocm-4.0.1 --offload-arch=gfx908 -fsave-loopmark -fno-cray
 
 LINKFLAGS =  -std=c++11 
 
