@@ -1,6 +1,6 @@
 #use make -f Makefile.CC
-LINKER = /usr/tce/packages/cce-tce/cce-11.0.4/bin/crayCC
-CXX = $(PREP) /usr/tce/packages/cce-tce/cce-11.0.4/bin/crayCC
+LINKER = /opt/cray/pe/craype/2.7.8/bin/CC
+CXX = $(PREP) /opt/cray/pe/craype/2.7.8/bin/CC
 RAJA_LOCATION = /home/users/coe0145/RAJA/Dev2/raja/install_906
 
 HIP_ROOT_DIR = $(HIP_PATH)
