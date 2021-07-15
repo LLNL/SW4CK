@@ -1,5 +1,5 @@
 set(ENABLE_HIP ON CACHE BOOL "")
-set(HIPCC_VERSION "rocm-4.1.0" CACHE STRING "")
+set(HIPCC_VERSION "rocm-4.2.0" CACHE STRING "")
 
 set(CMAKE_CXX_COMPILER "$ENV{ROCM_PATH}/bin/hipcc" CACHE PATH "")
 #set(GPU_TARGETS "gfx908" CACHE STRING "GPU targets to compile for")

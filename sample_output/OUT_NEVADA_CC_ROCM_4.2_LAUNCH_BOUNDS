@@ -1,0 +1,18 @@
+HIP(4.2.21155)
+Reading from file sw4ck.in
+Launching sw4 kernels
+
+Kernel 1 time 12.0833
+Kernel 2 time 5.71135
+Kernel 3 time 6.17646
+Kernel 4 time 2.0664
+Kernel 5 time 10.1859
+
+Total kernel runtime = 36 milliseconds
+
+MIN = -1.5735458151501329865e-05
+MAX = 0.010639705916308216105
+
+Norm of output 0x1.941a40aec0e7ap+7
+Norm of output 202.0512747393111681
+Error = -2.1e-11 %
