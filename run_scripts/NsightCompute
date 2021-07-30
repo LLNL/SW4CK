@@ -1,0 +1,1 @@
+lrun -T1 ncu --set full --profile-from-start off -o Profile ./sw4ck sw4ck.in
