@@ -364,7 +364,7 @@ void curvilinear4sg_ci(
             // averaging the coefficient
             // 54*8*8+25*8 = 3656 ops, tot=3939
             float_sw4 mucofu2, mucofuv, mucofuw, mucofvw, mucofv2, mucofw2;
-            //#pragma unroll 1 // slowdown due to register spills
+//#pragma unroll 8 // slowdown due to register spills
             for (int q = 1; q <= 8; q++) {
               mucofu2 = 0;
               mucofuv = 0;
@@ -372,7 +372,7 @@ void curvilinear4sg_ci(
               mucofvw = 0;
               mucofv2 = 0;
               mucofw2 = 0;
-              //#pragma unroll 1 // slowdown due to register spills
+//#pragma unroll 8 // slowdown due to register spills
               for (int m = 1; m <= 8; m++) {
                 mucofu2 += acof(k, q, m) *
                            ((2 * mu(i, j, m) + la(i, j, m)) * met(2, i, j, m) *

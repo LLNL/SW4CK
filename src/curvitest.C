@@ -22,6 +22,11 @@
 #ifdef ENABLE_CUDA
 #include <cuda_profiler_api.h>
 #endif
+#ifdef ENABLE_HIP
+#include "roctracer_ext.h"
+#endif
+
+
 #ifdef ENABLE_CUDA
 void CheckError(cudaError_t const err, const char *file, char const *const fun,
                 const int line);
@@ -271,6 +276,9 @@ int main(int argc, char* argv[]) {
     // std::cout << "Done initilizing m_sg_str_x and y\n" << std::flush;
 #ifdef ENABLE_CUDA
     cudaProfilerStart();
+#endif
+#ifdef ENABLE_HIP
+    roctracer_start();
 #endif
     std::cout << "Launching sw4 kernels\n\n" << std::flush;
     auto start = std::chrono::high_resolution_clock::now();
