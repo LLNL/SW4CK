@@ -105,6 +105,7 @@ class Range {
   int blocks;
   int tpb;
   bool invalid;
+  static const int value = N;
 };
 
 template <int N, int M>
@@ -464,8 +465,8 @@ class Tclass {
   float best;
 };
 
-template <int N, typename Tag, typename Func>
-__launch_bounds__(256,2) __global__ void forall3kernel(Tag t, const int start0, const int N0,
+template <int WGS, int OCC,  typename Tag, typename Func>
+  __launch_bounds__(WGS,OCC) __global__ void forall3kernel(Tag t, const int start0, const int N0,
                               const int start1, const int N1, const int start2,
                               const int N2, Func f) {
   int tid0 = start0 + threadIdx.x + blockIdx.x * blockDim.x;
@@ -534,7 +535,7 @@ void forall3async(Tag &t, T1 &irange, T2 &jrange, T3 &krange, LoopBody &&body) {
   if (err != hipSuccess)
     std::cout << hipGetErrorString(err) << "\n" << std::flush;
   // std::cout << "Launching kernel..." << std::flush;
-  hipLaunchKernelGGL(forall3kernel<N>, blocks, tpb, 0, 0,   t,
+  hipLaunchKernelGGL((forall3kernel<T1::value*T2::value*T3::value, N>), blocks, tpb, 0, 0,   t,
                         irange.start, irange.end, jrange.start, jrange.end,
                         krange.start, krange.end, body);
    }

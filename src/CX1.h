@@ -37,7 +37,8 @@ void curvilinear4sgX1_ci(
     float_sw4* __restrict__ a_ghcof, float_sw4* __restrict__ a_acof_no_gp,
     float_sw4* __restrict__ a_ghcof_no_gp, float_sw4* __restrict__ a_strx,
     float_sw4* __restrict__ a_stry, int nk, char op);
-void curvilinear4sg_ci(
+template <int OCC>
+void CX1(
     int ifirst, int ilast, int jfirst, int jlast, int kfirst, int klast,
     float_sw4* __restrict__ a_u, float_sw4* __restrict__ a_mu,
     float_sw4* __restrict__ a_lambda, float_sw4* __restrict__ a_met,
@@ -60,7 +61,7 @@ void curvilinear4sg_ci(
   //      Boundary discretization (1<=k<=6 ), 6049 arithmetic ops.
 
   //   const float_sw4 a1 =0;
-  const int OCC = 2;
+
   std::cout<<"Occupancy in __launch_bounds__ set to "<<OCC<<"\n";
   float_sw4 a1 = 0;
   float_sw4 sgn = 1;
@@ -185,7 +186,7 @@ void curvilinear4sg_ci(
       // Uses 166 registers, no spills
       Tclass<1> tag1(4.6441);
       insertEvent(start0);
-      forall3async<2>(
+      forall3async<OCC>(
           tag1, I, J, K, [=] RAJA_DEVICE(Tclass<1> t, int i, int j, int k) {
 #else
       RAJA::RangeSegment k_range(1, 6 + 1);
@@ -862,7 +863,7 @@ void curvilinear4sg_ci(
     Tclass<2> tag2(1.4301);
     insertEvent(start1);
 #pragma forceinline
-    forall3async<1>(
+    forall3async<OCC>(
         tag2, I, J, K, [=] RAJA_DEVICE(Tclass<2> t, int i, int j, int k) {
     // forall3X<256>(ifirst + 2, ilast - 1,jfirst + 2, jlast - 1,kstart, kend +
     // 1,
@@ -1304,7 +1305,7 @@ void curvilinear4sg_ci(
     Tclass<3> tag3(1.421);
     insertEvent(start2);
 #pragma forceinline
-    forall3async<1>(
+    forall3async<OCC>(
         tag3, I, J, K, [=] RAJA_DEVICE(Tclass<3> t, int i, int j, int k) {
 #else
     // RAJA::RangeSegment k_range(kstart,klast-1);
@@ -1719,7 +1720,7 @@ void curvilinear4sg_ci(
     Tclass<4> tag4(1.2905);
     insertEvent(start3);
 #pragma forceinline
-    forall3async<2>(
+    forall3async<OCC>(
         tag4, I, J, K, [=] RAJA_DEVICE(Tclass<4> t, int i, int j, int k) {
 #else
     // RAJA::RangeSegment k_range(kstart,klast-1);
@@ -2164,7 +2165,7 @@ void curvilinear4sg_ci(
     Tclass<5> tag5(5.1918);
     insertEvent(start4);
 #pragma forceinline
-    forall3async<2>(
+    forall3async<OCC>(
         tag5, II, JJ, KK, [=] RAJA_DEVICE(Tclass<5> t, int i, int j, int k) {
     // forall3X results in a 2.5X slowdown even though registers drop from
     // 168 to 130
@@ -4497,3 +4498,43 @@ void curvilinear4sg_ci(
 #undef ghcof
 }
 #endif
+
+template<int N>
+	void CX_Launcher(
+			 int ifirst, int ilast, int jfirst, int jlast, int kfirst, int klast,
+			 float_sw4* __restrict__ a_u, float_sw4* __restrict__ a_mu,
+			 float_sw4* __restrict__ a_lambda, float_sw4* __restrict__ a_met,
+			 float_sw4* __restrict__ a_jac, float_sw4* __restrict__ a_lu, int* onesided,
+			 float_sw4* __restrict__ a_acof, float_sw4* __restrict__ a_bope,
+			 float_sw4* __restrict__ a_ghcof, float_sw4* __restrict__ a_acof_no_gp,
+			 float_sw4* __restrict__ a_ghcof_no_gp, float_sw4* __restrict__ a_strx,
+			 float_sw4* __restrict__ a_stry, int nk, char op){
+      CX1<N>(ifirst, ilast,jfirst,jlast, kfirst, klast,
+		 a_u, a_mu,
+		 a_lambda,   a_met,
+		 a_jac,   a_lu, onesided,
+		 a_acof,   a_bope,
+		 a_ghcof,   a_acof_no_gp,
+		 a_ghcof_no_gp,   a_strx,
+	     a_stry, nk, op);
+      CX_Launcher<N-1>(ifirst, ilast,jfirst,jlast, kfirst, klast,
+		       a_u, a_mu,
+		       a_lambda,   a_met,
+		       a_jac,   a_lu, onesided,
+		       a_acof,   a_bope,
+		       a_ghcof,   a_acof_no_gp,
+		       a_ghcof_no_gp,   a_strx,
+		       a_stry, nk, op);
+      
+    }
+       
+	template<>
+	void CX_Launcher<0>(
+			 int ifirst, int ilast, int jfirst, int jlast, int kfirst, int klast,
+			 float_sw4* __restrict__ a_u, float_sw4* __restrict__ a_mu,
+			 float_sw4* __restrict__ a_lambda, float_sw4* __restrict__ a_met,
+			 float_sw4* __restrict__ a_jac, float_sw4* __restrict__ a_lu, int* onesided,
+			 float_sw4* __restrict__ a_acof, float_sw4* __restrict__ a_bope,
+			 float_sw4* __restrict__ a_ghcof, float_sw4* __restrict__ a_acof_no_gp,
+			 float_sw4* __restrict__ a_ghcof_no_gp, float_sw4* __restrict__ a_strx,
+			 float_sw4* __restrict__ a_stry, int nk, char op){}

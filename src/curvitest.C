@@ -16,12 +16,19 @@
 #define float_sw4 double
 #include "SW4CKConfig.h"
 #include "foralls.h"
+
 #ifndef NO_RAJA
 #include "RAJA/RAJA.hpp"
 #endif
+
 #ifdef ENABLE_CUDA
 #include <cuda_profiler_api.h>
 #endif
+
+#ifdef ENABLE_HIP
+#include "CX1.h"
+#endif
+
 #ifdef ENABLE_CUDA
 void CheckError(cudaError_t const err, const char *file, char const *const fun,
                 const int line);
@@ -272,7 +279,18 @@ int main(int argc, char* argv[]) {
 #ifdef ENABLE_CUDA
     cudaProfilerStart();
 #endif
-    std::cout << "Launching sw4 kernels\n\n" << std::flush;
+#ifdef OCC_SWEEP
+    std::cout<<"Launching occupancy sweep \n";
+    CX_Launcher<10>(optr[6], optr[7], optr[8], optr[9], optr[10], optr[11],
+                        alpha_ptr, mua_ptr, lambdaa_ptr, met_ptr, jac_ptr,
+                        uacc_ptr, onesided_ptr, m_acof_no_gp, m_bope,
+                        m_ghcof_no_gp, m_acof_no_gp, m_ghcof_no_gp, m_sg_str_x,
+                        m_sg_str_y, nkg, op);
+    
+    // Reset the array to make correctness check work for the next call
+    arrays[i]["a_Uacc"]->init2();
+#endif
+    std::cout << "\nLaunching sw4 kernels\n\n" << std::flush;
     auto start = std::chrono::high_resolution_clock::now();
     for (int p = 0; p < 1; p++)
       curvilinear4sg_ci(optr[6], optr[7], optr[8], optr[9], optr[10], optr[11],
@@ -280,6 +298,8 @@ int main(int argc, char* argv[]) {
                         uacc_ptr, onesided_ptr, m_acof_no_gp, m_bope,
                         m_ghcof_no_gp, m_acof_no_gp, m_ghcof_no_gp, m_sg_str_x,
                         m_sg_str_y, nkg, op);
+
+    
 #ifdef ENABLE_CUDA
 CheckDeviceError(cudaStreamSynchronize(0));
     cudaProfilerStop();
