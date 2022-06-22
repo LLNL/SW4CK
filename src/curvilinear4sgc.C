@@ -372,7 +372,9 @@ void curvilinear4sg_ci(
               mucofvw = 0;
               mucofv2 = 0;
               mucofw2 = 0;
-              //#pragma unroll 1 // slowdown due to register spills
+#ifdef AMD_UNROLL_FIX
+#pragma unroll 8 // slowdown due to register spills
+#endif
               for (int m = 1; m <= 8; m++) {
                 mucofu2 += acof(k, q, m) *
                            ((2 * mu(i, j, m) + la(i, j, m)) * met(2, i, j, m) *
@@ -2345,7 +2347,9 @@ void curvilinear4sg_ci(
             mucofvw = 0;
             mucofv2 = 0;
             mucofw2 = 0;
-            //#pragma unroll 8
+#ifdef AMD_UNROLL_FIX
+#pragma unroll 8
+#endif
             for (int m = nk - 7; m <= nk; m++) {
               mucofu2 += acof_no_gp(nk - k + 1, nk - q + 1, nk - m + 1) *
                          ((2 * mu(i, j, m) + la(i, j, m)) * met(2, i, j, m) *
