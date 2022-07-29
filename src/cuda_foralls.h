@@ -497,16 +497,8 @@ template <int N, int OCC, typename Tag, typename T1, typename T2, typename T3,
   dim3 blocks(irange.blocks, jrange.blocks, krange.blocks);
 //#define COMPILE_STANDALONE_KERNELS 1
 #ifdef COMPILE_STANDALONE_KERNELS
-  void *ptr;
-  if (cudaMalloc(&ptr, 24) != hipSuccess) {
-    std::cerr << "cudaMallocfailed for size 24 bytes\n";
-    abort();
-  }
-  float kernel_total = forall3recursor<N>(tpb,blocks,t,irange.start, irange.end, jrange.start,
-                     jrange.end, krange.start, krange.end,(double*)ptr, bodies...);
-
-  std::cout<<"Kernel total of single kernels is "<<kernel_total<<" ms\n";
-  CheckDeviceError(cudaFree(ptr));
+  (forall3kernelSF<N,T1::value*T2::value*T3::value,OCC><<<blocks, tpb>>>(t, irange.start, irange.end, jrange.start,
+                                  jrange.end, krange.start, krange.end, bodies),...);
 #endif
 
 #ifdef TIME_KERNEL
