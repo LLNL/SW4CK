@@ -23,16 +23,15 @@
 #include <cuda_profiler_api.h>
 #endif
 #ifdef ENABLE_CUDA
-void CheckError(cudaError_t const err, const char *file, char const *const fun,
-                const int line);
+//void CheckError(cudaError_t const err, const char *file, char const *const fun,
+//            const int line);
 #elif ENABLE_HIP
-void CheckError(hipError_t const err, const char *file, char const *const fun,
-                const int line);
+//void CheckError(hipError_t const err, const char *file, char const *const fun,
+//                const int line);
 #endif
 
 
-#define CheckDeviceError(err) \
-  CheckError(err, __FILE__, __FUNCTION__, __LINE__)
+
 
 
 
@@ -281,7 +280,7 @@ int main(int argc, char* argv[]) {
                         m_ghcof_no_gp, m_acof_no_gp, m_ghcof_no_gp, m_sg_str_x,
                         m_sg_str_y, nkg, op);
 #ifdef ENABLE_CUDA
-CheckDeviceError(cudaStreamSynchronize(0));
+    CheckDeviceError(cudaStreamSynchronize(0));
     cudaProfilerStop();
     CheckDeviceError(cudaPeekAtLastError());
     CheckDeviceError(cudaStreamSynchronize(0));
@@ -296,14 +295,14 @@ CheckDeviceError(cudaStreamSynchronize(0));
 #endif
     auto stop = std::chrono::high_resolution_clock::now();
     std::cout<<"\nTotal kernel runtime = "<<std::chrono::duration_cast<std::chrono::milliseconds>(stop-start).count()<<" milliseconds\n\n";
-    auto  minmax =arrays[i]["a_Uacc"]->minmax();
-    std::cout << "MIN = " << std::defaultfloat << std::setprecision(20)
-              << std::get<0>(minmax)<<"\nMAX = "<<std::get<1>(minmax)  << "\n\n";
+    //    auto  minmax =arrays[i]["a_Uacc"]->minmax();
+    //std::cout << "MIN = " << std::defaultfloat << std::setprecision(20)
+     //         << std::get<0>(minmax)<<"\nMAX = "<<std::get<1>(minmax)  << "\n\n";
     double norm=arrays[i]["a_Uacc"]->norm();
-    std::cout << "Norm of output " << std::hexfloat
-              << norm  << "\n";
-    std::cout << "Norm of output " << std::defaultfloat << std::setprecision(20)
-              << norm  << "\n";
+    //std::cout << "Norm of output " << std::hexfloat
+     //         << norm  << "\n";
+    //std::cout << "Norm of output " << std::defaultfloat << std::setprecision(20)
+     //         << norm  << "\n";
     //const double exact_norm = 9.86238393426104e+17;
     const double exact_norm = 202.0512747393526638; // for init2
     double err = (norm - exact_norm) / exact_norm * 100;

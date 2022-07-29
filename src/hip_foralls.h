@@ -18,6 +18,12 @@
 #include "hip/hip_runtime.h"
 #include "hip/hip_runtime_api.h"
 
+void CheckError(hipError_t const err, const char *file, char const *const fun,
+		    const int line);
+
+#define CheckDeviceError(err)				\
+  CheckError((err), __FILE__, __FUNCTION__, __LINE__)
+
 hipEvent_t newEvent();
 void insertEvent(hipEvent_t &event);
 float timeEvent(hipEvent_t &start, hipEvent_t &stop);
@@ -100,6 +106,7 @@ class Range {
     invalid = false;
     if (blocks <= 0) invalid = true;
   };
+  static const int value = N;
   int start;
   int end;
   int blocks;
@@ -128,6 +135,17 @@ __global__ void forall3kernel(const int start0, const int N0, const int start1,
 }
 
 template <int N, typename Func>
+__global__ void forall3kernel(const int start0, const int N0, const int start1,
+                              const int N1, const int start2, const int N2,
+                              Func f) {
+  int tid0 = start0 + threadIdx.x + blockIdx.x * blockDim.x;
+  int tid1 = start1 + threadIdx.y + blockIdx.y * blockDim.y;
+  int tid2 = start2 + threadIdx.z + blockIdx.z * blockDim.z;
+  if ((tid0 < N0) && (tid1 < N1) && (tid2 < N2)) f(tid0, tid1, tid2);
+}
+
+template <int N, int WGS, int OCC, typename Func>
+  __launch_bounds__(WGS,OCC) 
 __global__ void forall3kernel(const int start0, const int N0, const int start1,
                               const int N1, const int start2, const int N2,
                               Func f) {
@@ -465,7 +483,19 @@ class Tclass {
 };
 
 template <int N, typename Tag, typename Func>
-__launch_bounds__(256,2) __global__ void forall3kernel(Tag t, const int start0, const int N0,
+__launch_bounds__(256,2) 
+__global__ void forall3kernel(Tag t, const int start0, const int N0,
+                              const int start1, const int N1, const int start2,
+                              const int N2, Func f) {
+  int tid0 = start0 + threadIdx.x + blockIdx.x * blockDim.x;
+  int tid1 = start1 + threadIdx.y + blockIdx.y * blockDim.y;
+  int tid2 = start2 + threadIdx.z + blockIdx.z * blockDim.z;
+  if ((tid0 < N0) && (tid1 < N1) && (tid2 < N2)) f(t, tid0, tid1, tid2);
+}
+
+template <int N, int WGS, int OCC, typename Tag, typename Func>
+  __launch_bounds__(WGS,OCC) 
+__global__ void forall3kernel(Tag t, const int start0, const int N0,
                               const int start1, const int N1, const int start2,
                               const int N2, Func f) {
   int tid0 = start0 + threadIdx.x + blockIdx.x * blockDim.x;
@@ -513,7 +543,7 @@ void forall3async(Tag &t, T1 &irange, T2 &jrange, T3 &krange, LoopBody &&body) {
   // std::cout << "Done\n" << std::flush;
 }
 #else
-template <int N, typename Tag, typename T1, typename T2, typename T3,
+template <int N, int OCC, typename Tag, typename T1, typename T2, typename T3,
           typename LoopBody>
 void forall3async(Tag &t, T1 &irange, T2 &jrange, T3 &krange, LoopBody &&body) {
   if (irange.invalid || jrange.invalid || krange.invalid) return;
@@ -534,10 +564,127 @@ void forall3async(Tag &t, T1 &irange, T2 &jrange, T3 &krange, LoopBody &&body) {
   if (err != hipSuccess)
     std::cout << hipGetErrorString(err) << "\n" << std::flush;
   // std::cout << "Launching kernel..." << std::flush;
-  hipLaunchKernelGGL(forall3kernel<N>, blocks, tpb, 0, 0,   t,
+  hipLaunchKernelGGL((forall3kernel<N,T1::value*T2::value*T3::value,OCC>), blocks, tpb, 0, 0,   t,
                         irange.start, irange.end, jrange.start, jrange.end,
                         krange.start, krange.end, body);
    }
 #endif
+
+// Recursor for calling kernels separately
+
+template <int N, typename Tag, typename Func>
+  __launch_bounds__(256,1)
+__global__ void forall3kernelSM(Tag t, const int start0, const int N0,
+                              const int start1, const int N1, const int start2,
+                                const int N2, double *carray, Func f) {
+  int tid0 = start0 + threadIdx.x + blockIdx.x * blockDim.x;
+  int tid1 = start1 + threadIdx.y + blockIdx.y * blockDim.y;
+  int tid2 = start2 + threadIdx.z + blockIdx.z * blockDim.z;
+
+  if ((tid0 < N0) && (tid1 < N1) && (tid2 < N2)) f(t, carray, tid0, tid1, tid2);
+}
+
+template<int N, typename Tag, typename T>
+  float forall3recursor(dim3 &tpb, dim3 &blocks, Tag& t, int start0, int end0, int start1, int end1, int start2, int end2, double *carray, T&& body){
+  //std::cout<<" final forall3recursor call\n"<<std::flush;
+  int sm = 0;
+  hipEvent_t start, stop;
+  CheckDeviceError(  hipEventCreate(&start) );
+  CheckDeviceError( hipEventCreate(&stop) );
+  hipExtLaunchKernelGGL(forall3kernelSM<N>, blocks, tpb, sm, 0, start,stop,0,t, start0, end0, start1, end1, start2, end2, carray, body);
+  CheckDeviceError(hipEventSynchronize(stop));
+  float ms;
+  CheckDeviceError(hipEventElapsedTime(&ms, start, stop));
+  CheckDeviceError(hipEventDestroy(start));
+  CheckDeviceError(hipEventDestroy(stop));
+  std::cout << "Split Single Kernel runtime " << ms << " ms\n";
+  return ms;
+}
+
+template<int N, typename Tag, typename T, typename... LoopBodies>
+  float forall3recursor(dim3 &tpb, dim3 &blocks, Tag& t, int start0, int end0, int start1, int end1, int start2, int end2, double *carray, T&& body, LoopBodies &&... bodies){
+  //std::cout<<" forall3recursor call\n"<<std::flush;
+  int sm=0;
+  hipEvent_t start, stop;
+  CheckDeviceError(  hipEventCreate(&start) );
+  CheckDeviceError( hipEventCreate(&stop) );
+  hipExtLaunchKernelGGL(forall3kernelSM<N>, blocks, tpb, sm, 0, start,stop,0,t, start0, end0, start1, end1, start2, end2, carray, body);
+  CheckDeviceError(hipEventSynchronize(stop));
+  float ms;
+  CheckDeviceError(hipEventElapsedTime(&ms, start, stop));
+  CheckDeviceError(hipEventDestroy(start));
+  CheckDeviceError(hipEventDestroy(stop));
+  std::cout << "Split Single Kernel runtime " << ms << " ms\n";
+  float rest = forall3recursor<N>(tpb,blocks,t,start0,end0,start1,end1,start2,end2,carray, bodies...);
+  return ms+rest;
+}
+
+// Split Fusion kernels
+template <int N, int WGS, int OCC, typename Tag, typename... Func>
+  __launch_bounds__(WGS,OCC)
+__global__ void forall3kernelSF(Tag t, const int start0, const int N0, const int start1, const int N1, const int start2, const int N2, Func... f) {
+  const int STORE=5;
+#define USE_SHARED_MEMORY 1
+#ifdef USE_SHARED_MEMORY
+  int off = (threadIdx.x+blockDim.x*threadIdx.y+blockDim.x*blockDim.y*threadIdx.z)*STORE;
+  __shared__ double sma[512*STORE];
+
+  double *carray = sma+off;
+#else
+  double carray[STORE];
+
+#endif
+  //double sma2[3];
+
+  int tid0 = start0 + threadIdx.x + blockIdx.x * blockDim.x;
+  int tid1 = start1 + threadIdx.y + blockIdx.y * blockDim.y;
+  int tid2 = start2 + threadIdx.z + blockIdx.z * blockDim.z;
+  if ((tid0 < N0) && (tid1 < N1) && (tid2 < N2)) {
+    (f(t, carray,tid0, tid1, tid2),...);
+  }
+}
+
+template <int N, int OCC, typename Tag, typename T1, typename T2, typename T3,
+  typename... LoopBodies>
+  void forall3asyncSF(Tag &t, T1 &irange, T2 &jrange, T3 &krange, LoopBodies &&... bodies) {
+
+  if (irange.invalid || jrange.invalid || krange.invalid) { std::cerr<<"Invalid ranges in forall3asyncSF \n";return;}
+  dim3 tpb(irange.tpb, jrange.tpb, krange.tpb);
+  dim3 blocks(irange.blocks, jrange.blocks, krange.blocks);
+//#define COMPILE_STANDALONE_KERNELS 1
+#ifdef COMPILE_STANDALONE_KERNELS
+  void *ptr;
+  if (hipMalloc(&ptr, 24) != hipSuccess) {
+    std::cerr << "hipMallocfailed for size 24 bytes\n";
+    abort();
+  }
+  float kernel_total = forall3recursor<N>(tpb,blocks,t,irange.start, irange.end, jrange.start,
+                     jrange.end, krange.start, krange.end,(double*)ptr, bodies...);
+
+  std::cout<<"Kernel total of single kernels is "<<kernel_total<<" ms\n";
+  CheckDeviceError(hipFree(ptr));
+#endif
+
+#ifdef TIME_KERNEL
+  hipEvent_t start, stop;
+  hipEventCreate(&start);
+  hipEventCreate(&stop);
+
+  hipExtLaunchKernelGGL((forall3kernelSF<N,T1::value*T2::value*T3::value,OCC>), blocks, tpb, 0, 0, start,stop,0,
+		     t, irange.start, irange.end, jrange.start,
+  				     jrange.end, krange.start, krange.end, bodies...);
+  hipEventSynchronize(stop);
+  float ms;
+  hipEventElapsedTime(&ms, start, stop);
+  std::cout << "SF Kernel runtime " << ms << " ms\n";
+#else
+
+  hipLaunchKernelGGL((forall3kernelSF<N,T1::value*T2::value*T3::value,OCC>), blocks, tpb, 0, 0,
+		     t, irange.start, irange.end, jrange.start,
+  				     jrange.end, krange.start, krange.end, bodies...);
+
+#endif
+
+}
 
 #endif  // Guards

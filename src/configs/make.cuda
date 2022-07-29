@@ -1,4 +1,4 @@
-FC = xlf
+FC = gfortran
 LINKER = g++
 CXX = $(PREP) nvcc
 
@@ -19,6 +19,6 @@ endif
 
 LINKFLAGS = 
 
-EXTRA_CXX_FLAGS =  -O3 -lineinfo -use_fast_math $(MORE_FLAGS) -ccbin g++ -Xcompiler="" -std=c++11 --expt-extended-lambda -restrict -arch=sm_70 -I $(CUDA_HOME)/include -I$(RAJA_HOME)/include  --x cu  -DRAJA_USE_RESTRICT_PTR -DCUDA_CODE -DENABLE_CUDA -dc 
+EXTRA_CXX_FLAGS =  -O3 -lineinfo -use_fast_math $(MORE_FLAGS) -ccbin g++ -Xcompiler="" -std=c++17 --expt-extended-lambda -restrict -arch=sm_70 -I $(CUDA_HOME)/include -I$(RAJA_HOME)/include  --x cu  -DRAJA_USE_RESTRICT_PTR -DCUDA_CODE -DENABLE_CUDA -dc -dlto
 
-EXTRA_LINK_FLAGS =   -dc -L $(CUDA_HOME)/lib64 -lcudart -lnvToolsExt -lcuda -lcudadevrt -L/usr/lib64/nvidia -lnvidia-ml  $(MORE_LINK_FLAGS)
+EXTRA_LINK_FLAGS =   -dc -L $(CUDA_HOME)/lib64 -lcudart -lnvToolsExt -lcuda -lcudadevrt -L/usr/lib64/nvidia -lnvidia-ml  $(MORE_LINK_FLAGS) -dlto

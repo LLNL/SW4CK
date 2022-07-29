@@ -21,6 +21,7 @@ __device__ __forceinline__ void store(const T value, T& ref) {
 #define SW4_MARK_BEGIN(arg)
 #define SW4_MARK_END(arg)
 #define RAJA_DEVICE __device__
+#define L_ATTR  __attribute__((inline))
 #include "foralls.h"
 //#include "policies.h"
 #ifndef NO_RAJA
@@ -174,7 +175,7 @@ void curvilinear4sg_ci(
 #ifdef ENABLE_CUDA
       Range<16> I(ifirst + 2, ilast - 1);
       Range<4> J(jfirst + 2, jlast - 1);
-      Range<3> K(1, 6 + 1);  // This was 6
+      Range<6> K(1, 6 + 1);  // This was 6
 #else
       Range<64> I(ifirst + 2, ilast - 1);
       Range<2> J(jfirst + 2, jlast - 1);
@@ -183,8 +184,9 @@ void curvilinear4sg_ci(
       // Uses 166 registers, no spills
       Tclass<1> tag1(4.6441);
       insertEvent(start0);
-      forall3async<__LINE__>(
-          tag1, I, J, K, [=] RAJA_DEVICE(Tclass<1> t, int i, int j, int k) {
+      forall3asyncSF<__LINE__,2>(
+			     tag1, I, J, K, [=] RAJA_DEVICE(Tclass<1> t, double *sma, int i, int j,int k) { 
+
 #else
       RAJA::RangeSegment k_range(1, 6 + 1);
       RAJA::RangeSegment j_range(jfirst + 2, jlast - 1);
@@ -192,7 +194,7 @@ void curvilinear4sg_ci(
       insertEvent(start0);
       RAJA::kernel<CURV_POL>(
           RAJA::make_tuple(k_range, j_range, i_range),
-          [=] RAJA_DEVICE(int k, int j, int i) {
+          [=] RAJA_DEVICE(int k, int j, int i){
 #endif
             // float_sw4 mux1, mux2, mux3, mux4, muy1, muy2, muy3, muy4, muz1,
             // muz2, muz3, muz4; float_sw4 r1, r2, r3; #pragma omp for
@@ -203,11 +205,11 @@ void curvilinear4sg_ci(
             // 	    for( int i=ifirst+2; i <= ilast-2 ; i++ )
             // 	    {
             // 5 ops
-            float_sw4 ijac = strx(i) * stry(j) / jac(i, j, k);
+	    //            float_sw4 ijac = strx(i) * stry(j) / jac(i, j, k);
             // float_sw4 ijac = 1 / jac(i, j, k);
             float_sw4 istry = 1 / (stry(j));
             float_sw4 istrx = 1 / (strx(i));
-            float_sw4 istrxy = istry * istrx;
+	    //            float_sw4 istrxy = istry * istrx;
             // ijac*=strx(i) * stry(j);
 
             float_sw4 r1 = 0, r2 = 0, r3 = 0;
@@ -264,6 +266,10 @@ void curvilinear4sg_ci(
                            mux3 * (u(1, i, j + 1, k) - u(1, i, j, k)) +
                            mux4 * (u(1, i, j + 2, k) - u(1, i, j, k))) *
                           istrx;
+	    
+	    sma[3] = istrx;
+	    sma[4] = istry;
+	    sma[0]=r1;
 
             // pp derivative (v) (v-eq)
             // 43 ops, tot=144
@@ -313,6 +319,7 @@ void curvilinear4sg_ci(
                            mux4 * (u(2, i, j + 2, k) - u(2, i, j, k))) *
                           istrx;
 
+	    sma[1]=r2;
             // pp derivative (w) (w-eq)
             // 43 ops, tot=240
             cof1 = (mu(i - 2, j, k)) * met(1, i - 2, j, k) *
@@ -360,11 +367,60 @@ void curvilinear4sg_ci(
                            mux4 * (u(3, i, j + 2, k) - u(3, i, j, k))) *
                           istrx;
 
+	    sma[2]=r3;
+	  },[=] RAJA_DEVICE(Tclass<1> t, double *sma, int i, int j, int k)  L_ATTR { 
+	    //float_sw4 ijac = strx(i) * stry(j) / jac(i, j, k);
+	    float_sw4 istry = sma[4];
+	    float_sw4 istrx = sma[3];
+	    float_sw4 istrxy = istry * istrx;
+	    float_sw4 r1,r2,r3;
+		      r1 = sma[0];
+		      r2 = sma[1];
+		      r3 = sma[2];
+
             // All rr-derivatives at once
             // averaging the coefficient
             // 54*8*8+25*8 = 3656 ops, tot=3939
             float_sw4 mucofu2, mucofuv, mucofuw, mucofvw, mucofv2, mucofw2;
+	    float_sw4 tmp[8][6];
+#ifdef ENABLE_HIP
+#pragma unroll 8 
+#endif
+	for (int m = 1; m <= 8; m++) { // without this loop the funcion takes 6.8s
+	  // mu and lambda seem to vary from cycle to cycle. So mucofs cannot be computed and stored
+	    //if (acof(k,q,m)!=0.0){ // Massive increase runtime due to divergence goes from 7.73ms to 23ms
+	  int mm=m-1;
+            tmp[mm][0] = 
+                       ((2 * mu(i, j, m) + la(i, j, m)) * met(2, i, j, m) *
+                            strx(i) * met(2, i, j, m) * strx(i) +
+                        mu(i, j, m) * (met(3, i, j, m) * stry(j) *
+                                           met(3, i, j, m) * stry(j) +
+                                       met(4, i, j, m) * met(4, i, j, m)));
+            tmp[mm][1] = 
+                       ((2 * mu(i, j, m) + la(i, j, m)) * met(3, i, j, m) *
+                            stry(j) * met(3, i, j, m) * stry(j) +
+                        mu(i, j, m) * (met(2, i, j, m) * strx(i) *
+                                           met(2, i, j, m) * strx(i) +
+                                       met(4, i, j, m) * met(4, i, j, m)));
+            tmp[mm][2]=
+                
+                ((2 * mu(i, j, m) + la(i, j, m)) * met(4, i, j, m) *
+                     met(4, i, j, m) +
+                 mu(i, j, m) *
+                     (met(2, i, j, m) * strx(i) * met(2, i, j, m) * strx(i) +
+                      met(3, i, j, m) * stry(j) * met(3, i, j, m) * stry(j)));
+            tmp[mm][3]= (mu(i, j, m) + la(i, j, m)) *
+                       met(2, i, j, m) * met(3, i, j, m);
+            tmp[mm][4]= (mu(i, j, m) + la(i, j, m)) *
+                       met(2, i, j, m) * met(4, i, j, m);
+            tmp[mm][5]= (mu(i, j, m) + la(i, j, m)) *
+                       met(3, i, j, m) * met(4, i, j, m);
+	    
+	}
             //#pragma unroll 1 // slowdown due to register spills
+#ifdef ENABLE_HIP
+#pragma unroll 8  //HIP SA 62
+#endif
             for (int q = 1; q <= 8; q++) {
               mucofu2 = 0;
               mucofuv = 0;
@@ -372,35 +428,15 @@ void curvilinear4sg_ci(
               mucofvw = 0;
               mucofv2 = 0;
               mucofw2 = 0;
-#ifdef AMD_UNROLL_FIX
-#pragma unroll 8 // slowdown due to register spills
-#endif
+//#pragma unroll 8 // slowdown due to register spills
               for (int m = 1; m <= 8; m++) {
-                mucofu2 += acof(k, q, m) *
-                           ((2 * mu(i, j, m) + la(i, j, m)) * met(2, i, j, m) *
-                                strx(i) * met(2, i, j, m) * strx(i) +
-                            mu(i, j, m) * (met(3, i, j, m) * stry(j) *
-                                               met(3, i, j, m) * stry(j) +
-                                           met(4, i, j, m) * met(4, i, j, m)));
-                mucofv2 += acof(k, q, m) *
-                           ((2 * mu(i, j, m) + la(i, j, m)) * met(3, i, j, m) *
-                                stry(j) * met(3, i, j, m) * stry(j) +
-                            mu(i, j, m) * (met(2, i, j, m) * strx(i) *
-                                               met(2, i, j, m) * strx(i) +
-                                           met(4, i, j, m) * met(4, i, j, m)));
-                mucofw2 += acof(k, q, m) *
-                           ((2 * mu(i, j, m) + la(i, j, m)) * met(4, i, j, m) *
-                                met(4, i, j, m) +
-                            mu(i, j, m) * (met(2, i, j, m) * strx(i) *
-                                               met(2, i, j, m) * strx(i) +
-                                           met(3, i, j, m) * stry(j) *
-                                               met(3, i, j, m) * stry(j)));
-                mucofuv += acof(k, q, m) * (mu(i, j, m) + la(i, j, m)) *
-                           met(2, i, j, m) * met(3, i, j, m);
-                mucofuw += acof(k, q, m) * (mu(i, j, m) + la(i, j, m)) *
-                           met(2, i, j, m) * met(4, i, j, m);
-                mucofvw += acof(k, q, m) * (mu(i, j, m) + la(i, j, m)) *
-                           met(3, i, j, m) * met(4, i, j, m);
+	    int mm=m-1;
+            mucofu2 += acof(k, q, m) *tmp[mm][0];
+            mucofv2 += acof(k, q, m) *tmp[mm][1];
+            mucofw2 += acof(k, q, m) *tmp[mm][2];
+            mucofuv += acof(k, q, m) *tmp[mm][3];
+            mucofuw += acof(k, q, m) *tmp[mm][4];
+            mucofvw += acof(k, q, m) *tmp[mm][5];
               }
 
               // Computing the second derivative,
@@ -412,33 +448,51 @@ void curvilinear4sg_ci(
                     istrx * mucofvw * u(2, i, j, q) +
                     istrxy * mucofw2 * u(3, i, j, q);
             }
+	    sma[0] = r1;
+	    sma[1] = r2;
+	    sma[2] = r3;
+
+	    },[=] RAJA_DEVICE(Tclass<1> t, double *sma, int i, int j,int k) L_ATTR {  // LAMBDA 3 0 regs standalon 40 HIPSA 39
+		      //float_sw4 ijac = strx(i) * stry(j) / jac(i, j, k);
+            // float_sw4 ijac = 1 / jac(i, j, k);
+            //float_sw4 istry = 1 / (stry(j));
+            //float_sw4 istrx = 1 / (strx(i));
+	    float_sw4 istry = sma[4];
+	    float_sw4 istrx = sma[3];
+            float_sw4 istrxy = istry * istrx;
+            // ijac*=strx(i) * stry(j);
+	    {
+		      float_sw4 r1,r2,r3;
+		      r1 = sma[0];
+		      r2 = sma[1];
+		      r3 = sma[2];
 
             // Ghost point values, only nonzero for k=1.
             // 72 ops., tot=4011
-            mucofu2 =
+            float_sw4 mucofu2 =
                 ghcof(k) * ((2 * mu(i, j, 1) + la(i, j, 1)) * met(2, i, j, 1) *
                                 strx(i) * met(2, i, j, 1) * strx(i) +
                             mu(i, j, 1) * (met(3, i, j, 1) * stry(j) *
                                                met(3, i, j, 1) * stry(j) +
                                            met(4, i, j, 1) * met(4, i, j, 1)));
-            mucofv2 =
+            float_sw4 mucofv2 =
                 ghcof(k) * ((2 * mu(i, j, 1) + la(i, j, 1)) * met(3, i, j, 1) *
                                 stry(j) * met(3, i, j, 1) * stry(j) +
                             mu(i, j, 1) * (met(2, i, j, 1) * strx(i) *
                                                met(2, i, j, 1) * strx(i) +
                                            met(4, i, j, 1) * met(4, i, j, 1)));
-            mucofw2 =
+            float_sw4 mucofw2 =
                 ghcof(k) *
                 ((2 * mu(i, j, 1) + la(i, j, 1)) * met(4, i, j, 1) *
                      met(4, i, j, 1) +
                  mu(i, j, 1) *
                      (met(2, i, j, 1) * strx(i) * met(2, i, j, 1) * strx(i) +
                       met(3, i, j, 1) * stry(j) * met(3, i, j, 1) * stry(j)));
-            mucofuv = ghcof(k) * (mu(i, j, 1) + la(i, j, 1)) * met(2, i, j, 1) *
+            float_sw4 mucofuv = ghcof(k) * (mu(i, j, 1) + la(i, j, 1)) * met(2, i, j, 1) *
                       met(3, i, j, 1);
-            mucofuw = ghcof(k) * (mu(i, j, 1) + la(i, j, 1)) * met(2, i, j, 1) *
+            float_sw4 mucofuw = ghcof(k) * (mu(i, j, 1) + la(i, j, 1)) * met(2, i, j, 1) *
                       met(4, i, j, 1);
-            mucofvw = ghcof(k) * (mu(i, j, 1) + la(i, j, 1)) * met(3, i, j, 1) *
+            float_sw4 mucofvw = ghcof(k) * (mu(i, j, 1) + la(i, j, 1)) * met(3, i, j, 1) *
                       met(4, i, j, 1);
             r1 += istrxy * mucofu2 * u(1, i, j, 0) + mucofuv * u(2, i, j, 0) +
                   istry * mucofuw * u(3, i, j, 0);
@@ -447,6 +501,17 @@ void curvilinear4sg_ci(
             r3 += istry * mucofuw * u(1, i, j, 0) +
                   istrx * mucofvw * u(2, i, j, 0) +
                   istrxy * mucofw2 * u(3, i, j, 0);
+
+	    sma[0] = r1;
+	sma[1] = r2;
+	sma[2] = r3;
+	    }
+		    },[=] RAJA_DEVICE(Tclass<1> t, double *sma, int i, int j,int k) L_ATTR {  // LAMBDA 4 2 regs standalone 68 HIP SA 86
+
+	    float_sw4 r1,r2;
+
+				      r1 = sma[0];
+				      r2 = sma[1];
 
             // pq-derivatives (u-eq)
             // 38 ops., tot=4049
@@ -552,6 +617,18 @@ void curvilinear4sg_ci(
                           c1 *
                               (u(1, i - 1, j + 1, k) - u(1, i - 1, j - 1, k))));
 
+	    sma[0] = r1;
+	    sma[1] = r2;
+	    
+	     },[=] RAJA_DEVICE(Tclass<1> t, double *sma, int i, int j,int k ) L_ATTR {  // LAMBDA 5 2 regs standalone 80 HIPSA 86
+
+	    float_sw4 istry = sma[4];
+
+	    float_sw4 r1,r2,r3;
+
+	    r1 = sma[0];
+	    r2 = sma[1];
+	    r3 = sma[2];
             // rp - derivatives
             // 24*8 = 192 ops, tot=4355
             float_sw4 dudrm2 = 0, dudrm1 = 0, dudrp1 = 0, dudrp2 = 0;
@@ -645,22 +722,31 @@ void curvilinear4sg_ci(
                               met(1, i - 1, j, k) * dudrm1 +
                           mu(i - 1, j, k) * met(2, i - 1, j, k) *
                               met(1, i - 1, j, k) * dwdrm1 * strx(i - 1))));
+	    sma[0] = r1;
+	    sma[1] = r2;
+	    sma[2] = r3;
 
+	    },[=] RAJA_DEVICE(Tclass<1> t, double *sma, int i, int j,int k) {  // LAMBDA 6 99 HIPSA 87
+	    float_sw4 istrx = sma[3];
+	    float_sw4 r1,r2,r3;
+		      r1 = sma[0];
+		      r2 = sma[1];
+		      r3 = sma[2];
             // rq - derivatives
             // 24*8 = 192 ops , tot=4694
 
-            dudrm2 = 0;
-            dudrm1 = 0;
-            dudrp1 = 0;
-            dudrp2 = 0;
-            dvdrm2 = 0;
-            dvdrm1 = 0;
-            dvdrp1 = 0;
-            dvdrp2 = 0;
-            dwdrm2 = 0;
-            dwdrm1 = 0;
-            dwdrp1 = 0;
-            dwdrp2 = 0;
+            float_sw4 dudrm2 = 0;
+            float_sw4 dudrm1 = 0;
+            float_sw4 dudrp1 = 0;
+            float_sw4 dudrp2 = 0;
+            float_sw4 dvdrm2 = 0;
+            float_sw4 dvdrm1 = 0;
+            float_sw4 dvdrp1 = 0;
+            float_sw4 dvdrp2 = 0;
+            float_sw4 dwdrm2 = 0;
+            float_sw4 dwdrm1 = 0;
+            float_sw4 dwdrp1 = 0;
+            float_sw4 dwdrp2 = 0;
             //#pragma unroll 1
             for (int q = 1; q <= 8; q++) {
               dudrm2 += bope(k, q) * u(1, i, j - 2, q);
@@ -748,6 +834,20 @@ void curvilinear4sg_ci(
                               met(1, i, j - 1, k) * dvdrm1))) *
                   istrx;
 
+	    sma[0] = r1;
+	sma[1] = r2;
+	sma[2] = r3;
+	    
+
+	},[=] RAJA_DEVICE(Tclass<1> t, double *sma, int i, int j,int k) L_ATTR {  // LAMBDA 7 HIP SA 78
+
+	    float_sw4 istry = sma[4];
+	      float_sw4 istrx = sma[3];
+	      float_sw4 ijac = strx(i) * stry(j) / jac(i, j, k);
+	      float_sw4 r1 = sma[0];
+	      float_sw4 r2 = sma[1];
+	      float_sw4 r3 = sma[2];
+
             // pr and qr derivatives at once
             // in loop: 8*(53+53+43) = 1192 ops, tot=6037
             //#pragma unroll 1
@@ -827,11 +927,17 @@ void curvilinear4sg_ci(
                              c1 * (u(2, i, j + 1, q) - u(2, i, j - 1, q))) *
                             istrx);
             }
-
+	    //#define USE_NON_TEMPORAL_STORES  1
+#ifndef USE_NON_TEMPORAL_STORES // Makes no difference in performance
             // 12 ops, tot=6049
             lu(1, i, j, k) = a1 * lu(1, i, j, k) + sgn * r1 * ijac;
             lu(2, i, j, k) = a1 * lu(2, i, j, k) + sgn * r2 * ijac;
             lu(3, i, j, k) = a1 * lu(3, i, j, k) + sgn * r3 * ijac;
+#else
+	    store(a1 * load(lu(1, i, j, k)) + sgn * r1 * ijac,lu(1, i, j, k));
+	    store(a1 * load(lu(2, i, j, k)) + sgn * r2 * ijac,lu(2, i, j, k) );
+	    store(a1 * load(lu(3, i, j, k)) + sgn * r3 * ijac,lu(3, i, j, k));
+#endif
           });  // End of curvilinear4sg_ci LOOP -1
       insertEvent(stop0);
       std::cout << "Kernel 1 time " << timeEvent(start0, stop0) << "\n";
@@ -852,17 +958,22 @@ void curvilinear4sg_ci(
     RangeGS<256, 4> IS(ifirst + 2, ilast - 1);
     RangeGS<1, 1> JS(jfirst + 2, jlast - 1);
     RangeGS<1, 1> KS(kstart, klast - 1);
-
-    Range<64> I(ifirst + 2, ilast - 1);  // 16.861ms for 64,2,2
+#ifdef ENABLE_HIP
+    Range<128> I(ifirst + 2, ilast - 1);  // 16.861ms for 64,2,2
     Range<2> J(jfirst + 2, jlast - 1);
     Range<2> K(kstart, kend + 1);  // Changed for CUrvi-MR Was klast-1
+#else
+    Range<64> I(ifirst + 2, ilast - 1);  // 16.861ms for 64,2,2
+    Range<2> J(jfirst + 2, jlast - 1);
+    Range<2> K(kstart, kend + 1);  // Changed for CUrvi-MR Was klast-1	     
+#endif
     // std::cout<<"KSTART END"<<kstart<<" "<<kend<<"\n";
     // forall3GS(IS,JS,KS, [=]RAJA_DEVICE(int i,int j,int k){
     // Use 168 regissters , no spills
     Tclass<2> tag2(1.4301);
     insertEvent(start1);
 #pragma forceinline
-    forall3async<__LINE__>(
+			     forall3async<__LINE__,2>(
         tag2, I, J, K, [=] RAJA_DEVICE(Tclass<2> t, int i, int j, int k) {
     // forall3X<256>(ifirst + 2, ilast - 1,jfirst + 2, jlast - 1,kstart, kend +
     // 1,
@@ -1032,12 +1143,12 @@ void curvilinear4sg_ci(
                  mux2 * (u(3, i, j, k - 1) - u(3, i, j, k)) +
                  mux3 * (u(3, i, j, k + 1) - u(3, i, j, k)) +
                  mux4 * (u(3, i, j, k + 2) - u(3, i, j, k))) *
-                istry;
+                istry
 
           // pq-derivatives
           // 38 ops, tot=307
-          r1 +=
-              c2 *
+          //r1 +=
+              +c2 *
                   (mu(i, j + 2, k) * met(1, i, j + 2, k) * met(1, i, j + 2, k) *
                        (c2 * (u(2, i + 2, j + 2, k) - u(2, i - 2, j + 2, k)) +
                         c1 * (u(2, i + 1, j + 2, k) - u(2, i - 1, j + 2, k))) -
@@ -1050,12 +1161,12 @@ void curvilinear4sg_ci(
                         c1 * (u(2, i + 1, j + 1, k) - u(2, i - 1, j + 1, k))) -
                    mu(i, j - 1, k) * met(1, i, j - 1, k) * met(1, i, j - 1, k) *
                        (c2 * (u(2, i + 2, j - 1, k) - u(2, i - 2, j - 1, k)) +
-                        c1 * (u(2, i + 1, j - 1, k) - u(2, i - 1, j - 1, k))));
+                        c1 * (u(2, i + 1, j - 1, k) - u(2, i - 1, j - 1, k))))
 
           // qp-derivatives
           // 38 ops, tot=345
-          r1 +=
-              c2 *
+	    // r1 +=
+              +c2 *
                   (la(i + 2, j, k) * met(1, i + 2, j, k) * met(1, i + 2, j, k) *
                        (c2 * (u(2, i + 2, j + 2, k) - u(2, i + 2, j - 2, k)) +
                         c1 * (u(2, i + 2, j + 1, k) - u(2, i + 2, j - 1, k))) -
@@ -1126,7 +1237,7 @@ void curvilinear4sg_ci(
                         met(1, i, j, k - 1) *
                         (c2 * (u(3, i + 2, j, k - 1) - u(3, i - 2, j, k - 1)) +
                          c1 * (u(3, i + 1, j, k - 1) - u(3, i - 1, j, k - 1))) *
-                        istry));
+		    istry));
 
           // rp derivatives
           // 130 ops, tot=605
@@ -1195,7 +1306,7 @@ void curvilinear4sg_ci(
                          (c2 * (u(3, i - 1, j, k + 2) - u(3, i - 1, j, k - 2)) +
                           c1 * (u(3, i - 1, j, k + 1) -
                                 u(3, i - 1, j, k - 1)))))) *
-              istry;
+	    istry;
 
           // qr derivatives
           // 82 ops, tot=687
@@ -1235,7 +1346,7 @@ void curvilinear4sg_ci(
                         met(1, i, j, k - 1) *
                         (c2 * (u(2, i, j + 2, k - 1) - u(2, i, j - 2, k - 1)) +
                          c1 *
-                             (u(2, i, j + 1, k - 1) - u(2, i, j - 1, k - 1)))));
+			 (u(2, i, j + 1, k - 1) - u(2, i, j - 1, k - 1)))));
 
           // rq derivatives
           // 82 ops, tot=769
@@ -1304,7 +1415,7 @@ void curvilinear4sg_ci(
     Tclass<3> tag3(1.421);
     insertEvent(start2);
 #pragma forceinline
-    forall3async<__LINE__>(
+    forall3async<__LINE__,2 >(
         tag3, I, J, K, [=] RAJA_DEVICE(Tclass<3> t, int i, int j, int k) {
 #else
     // RAJA::RangeSegment k_range(kstart,klast-1);
@@ -1458,7 +1569,7 @@ void curvilinear4sg_ci(
                  mux2 * (u(3, i, j, k - 1) - u(3, i, j, k)) +
                  mux3 * (u(3, i, j, k + 1) - u(3, i, j, k)) +
                  mux4 * (u(3, i, j, k + 2) - u(3, i, j, k))) *
-                istrx;
+	    istrx;
 
           // pq-derivatives
           // 38 ops, tot=1075
@@ -1476,12 +1587,12 @@ void curvilinear4sg_ci(
                         c1 * (u(1, i + 1, j + 1, k) - u(1, i - 1, j + 1, k))) -
                    la(i, j - 1, k) * met(1, i, j - 1, k) * met(1, i, j - 1, k) *
                        (c2 * (u(1, i + 2, j - 1, k) - u(1, i - 2, j - 1, k)) +
-                        c1 * (u(1, i + 1, j - 1, k) - u(1, i - 1, j - 1, k))));
+                        c1 * (u(1, i + 1, j - 1, k) - u(1, i - 1, j - 1, k))))
 
           // qp-derivatives
           // 38 ops, tot=1113
-          r2 +=
-              c2 *
+          //r2 +=
+              +c2 *
                   (mu(i + 2, j, k) * met(1, i + 2, j, k) * met(1, i + 2, j, k) *
                        (c2 * (u(1, i + 2, j + 2, k) - u(1, i + 2, j - 2, k)) +
                         c1 * (u(1, i + 2, j + 1, k) - u(1, i + 2, j - 1, k))) -
@@ -1534,7 +1645,7 @@ void curvilinear4sg_ci(
                         met(1, i, j, k - 1) *
                         (c2 * (u(2, i + 2, j, k - 1) - u(2, i - 2, j, k - 1)) +
                          c1 * (u(2, i + 1, j, k - 1) - u(2, i - 1, j, k - 1))) *
-                        strx(i) * istry));
+		    strx(i) * istry));
 
           // rp derivatives
           // 82 ops, tot=1277
@@ -1574,7 +1685,7 @@ void curvilinear4sg_ci(
                         met(1, i - 1, j, k) *
                         (c2 * (u(2, i - 1, j, k + 2) - u(2, i - 1, j, k - 2)) +
                          c1 * (u(2, i - 1, j, k + 1) - u(2, i - 1, j, k - 1))) *
-                        strx(i - 1) * istry));
+		    strx(i - 1) * istry));
 
           // qr derivatives
           // 130 ops, tot=1407
@@ -1632,7 +1743,7 @@ void curvilinear4sg_ci(
                         met(1, i, j, k - 1) *
                         (c2 * (u(3, i, j + 2, k - 1) - u(3, i, j - 2, k - 1)) +
                          c1 * (u(3, i, j + 1, k - 1) - u(3, i, j - 1, k - 1))) *
-                        istrx));
+		    istrx));
 
           // rq derivatives
           // 130 ops, tot=1537
@@ -1719,7 +1830,7 @@ void curvilinear4sg_ci(
     Tclass<4> tag4(1.2905);
     insertEvent(start3);
 #pragma forceinline
-    forall3async<__LINE__>(
+    forall3async<__LINE__,2>(
         tag4, I, J, K, [=] RAJA_DEVICE(Tclass<4> t, int i, int j, int k) {
 #else
     // RAJA::RangeSegment k_range(kstart,klast-1);
@@ -2164,8 +2275,8 @@ void curvilinear4sg_ci(
     Tclass<5> tag5(5.1918);
     insertEvent(start4);
 #pragma forceinline
-    forall3async<__LINE__>(
-        tag5, II, JJ, KK, [=] RAJA_DEVICE(Tclass<5> t, int i, int j, int k) {
+    forall3asyncSF<__LINE__,2>(
+			     tag5, II, JJ, KK, [=] RAJA_DEVICE(Tclass<5> t, double *sma, int i, int j, int k) { // LAMBDA 1
     // forall3X results in a 2.5X slowdown even though registers drop from
     // 168 to 130
     // forall3X<256>(ifirst + 2, ilast - 1,jfirst + 2, jlast - 1,nk-5,nk+1,
@@ -2180,10 +2291,10 @@ void curvilinear4sg_ci(
         [=] RAJA_DEVICE(int k, int j, int i) {
 #endif
           // 5 ops
-          float_sw4 ijac = strx(i) * stry(j) / jac(i, j, k);
+	  //          float_sw4 ijac = strx(i) * stry(j) / jac(i, j, k);
           float_sw4 istry = 1 / (stry(j));
           float_sw4 istrx = 1 / (strx(i));
-          float_sw4 istrxy = istry * istrx;
+	  //          float_sw4 istrxy = istry * istrx;
 
           float_sw4 r1 = 0, r2 = 0, r3 = 0;
 
@@ -2335,22 +2446,43 @@ void curvilinear4sg_ci(
                          mux4 * (u(3, i, j + 2, k) - u(3, i, j, k))) *
                         istrx;
 
+	  sma[0] = r1;
+	  sma[1] = r2;
+	  sma[2] = r3;
+	  sma[3] = istrx;
+	  sma[4] = istry;
+
+	}, [=] RAJA_DEVICE(Tclass<5> t, double *sma, int i, int j, int k) { // LAMBDA 2
+	  
+	     //	  float_sw4 ijac = strx(i) * stry(j) / jac(i, j, k);
+	  float_sw4 r1 = sma[0];
+	  float_sw4 r2 = sma[1];
+	  float_sw4 r3 = sma[2];
+	  float_sw4 istrx = sma[3];
+	  float_sw4 istry = sma[4];
+	  float_sw4 istrxy = istry * istrx;
           // All rr-derivatives at once
           // averaging the coefficient
           // 54*8*8+25*8 = 3656 ops, tot=3939
           float_sw4 mucofu2, mucofuv, mucofuw, mucofvw, mucofv2, mucofw2;
-          //#pragma unroll 8
-          for (int q = nk - 7; q <= nk; q++) {
+#ifdef ENABLE_HIP
+#pragma unroll 8
+#endif
+	  for (int qq = 0; qq<8 ; qq++) {
+	    //for (int q = nk - 7; q <= nk; q++) {
+	    int q = nk-qq;
             mucofu2 = 0;
             mucofuv = 0;
             mucofuw = 0;
             mucofvw = 0;
             mucofv2 = 0;
             mucofw2 = 0;
-#ifdef AMD_UNROLL_FIX
+#ifdef ENABLE_HIP
 #pragma unroll 8
 #endif
-            for (int m = nk - 7; m <= nk; m++) {
+            for (int mm = 0; mm <8; mm++) {
+	      //for (int m = nk - 7; m <= nk; m++) {
+		int m = nk-mm;
               mucofu2 += acof_no_gp(nk - k + 1, nk - q + 1, nk - m + 1) *
                          ((2 * mu(i, j, m) + la(i, j, m)) * met(2, i, j, m) *
                               strx(i) * met(2, i, j, m) * strx(i) +
@@ -2391,32 +2523,46 @@ void curvilinear4sg_ci(
                   istrxy * mucofw2 * u(3, i, j, q);
           }
 
+	  sma[0] = r1;
+	  sma[1] = r2;
+	  sma[2] = r3;
+
+	}, [=] RAJA_DEVICE(Tclass<5> t, double *sma, int i, int j, int k) { // LAMBDA 3
+#define SOMETHING 1
+#ifdef SOMETHING
+
+	  float_sw4 r1 = sma[0];
+	  float_sw4 r2 = sma[1];
+	  float_sw4 r3 = sma[2];
+	  float_sw4 istrx = sma[3];
+	  float_sw4 istry = sma[4];
+	  float_sw4 istrxy = istry * istrx;
           // Ghost point values, only nonzero for k=nk.
           // 72 ops., tot=4011
-          mucofu2 = ghcof_no_gp(nk - k + 1) *
+          float_sw4 mucofu2 = ghcof_no_gp(nk - k + 1) *
                     ((2 * mu(i, j, nk) + la(i, j, nk)) * met(2, i, j, nk) *
                          strx(i) * met(2, i, j, nk) * strx(i) +
                      mu(i, j, nk) * (met(3, i, j, nk) * stry(j) *
                                          met(3, i, j, nk) * stry(j) +
                                      met(4, i, j, nk) * met(4, i, j, nk)));
-          mucofv2 = ghcof_no_gp(nk - k + 1) *
+          float_sw4 mucofv2 = ghcof_no_gp(nk - k + 1) *
                     ((2 * mu(i, j, nk) + la(i, j, nk)) * met(3, i, j, nk) *
                          stry(j) * met(3, i, j, nk) * stry(j) +
                      mu(i, j, nk) * (met(2, i, j, nk) * strx(i) *
                                          met(2, i, j, nk) * strx(i) +
                                      met(4, i, j, nk) * met(4, i, j, nk)));
-          mucofw2 =
+          float_sw4 mucofw2 =
               ghcof_no_gp(nk - k + 1) *
               ((2 * mu(i, j, nk) + la(i, j, nk)) * met(4, i, j, nk) *
                    met(4, i, j, nk) +
                mu(i, j, nk) *
                    (met(2, i, j, nk) * strx(i) * met(2, i, j, nk) * strx(i) +
                     met(3, i, j, nk) * stry(j) * met(3, i, j, nk) * stry(j)));
-          mucofuv = ghcof_no_gp(nk - k + 1) * (mu(i, j, nk) + la(i, j, nk)) *
+          float_sw4 mucofuv = ghcof_no_gp(nk - k + 1) * (mu(i, j, nk) + la(i, j, nk)) *
                     met(2, i, j, nk) * met(3, i, j, nk);
-          mucofuw = ghcof_no_gp(nk - k + 1) * (mu(i, j, nk) + la(i, j, nk)) *
+          float_sw4 mucofuw = ghcof_no_gp(nk - k + 1) * (mu(i, j, nk) + la(i, j, nk)) *
                     met(2, i, j, nk) * met(4, i, j, nk);
-          mucofvw = ghcof_no_gp(nk - k + 1) * (mu(i, j, nk) + la(i, j, nk)) *
+          float_sw4 mucofvw = ghcof_no_gp(nk - k + 1) * (mu(i, j, nk) + la(i, j, nk)) *
                     met(3, i, j, nk) * met(4, i, j, nk);
           r1 += istrxy * mucofu2 * u(1, i, j, nk + 1) +
                 mucofuv * u(2, i, j, nk + 1) +
@@ -2427,7 +2573,19 @@ void curvilinear4sg_ci(
           r3 += istry * mucofuw * u(1, i, j, nk + 1) +
                 istrx * mucofvw * u(2, i, j, nk + 1) +
                 istrxy * mucofw2 * u(3, i, j, nk + 1);
+	   sma[0] = r1;
+	   sma[1] = r2;
+	   sma[2] = r3;
+#endif
 
+	}, [=] RAJA_DEVICE(Tclass<5> t, double *sma, int i, int j, int k) { // LAMBDA 4
+	     //	  float_sw4 ijac = strx(i) * stry(j) / jac(i, j, k);
+	  float_sw4 r1 = sma[0];
+	  float_sw4 r2 = sma[1];
+	  float_sw4 r3 = sma[2];
+	  //	  float_sw4 istrx = sma[3];
+	  //  float_sw4 istry = sma[4];
+	  //	  float_sw4 istrxy = istry * istrx;
           // pq-derivatives (u-eq)
           // 38 ops., tot=4049
           r1 +=
@@ -2499,6 +2657,18 @@ void curvilinear4sg_ci(
                    mu(i - 1, j, k) * met(1, i - 1, j, k) * met(1, i - 1, j, k) *
                        (c2 * (u(1, i - 1, j + 2, k) - u(1, i - 1, j - 2, k)) +
                         c1 * (u(1, i - 1, j + 1, k) - u(1, i - 1, j - 1, k))));
+	  sma[0] = r1;
+	   sma[1] = r2;
+	   sma[2] = r3;
+
+	}, [=] RAJA_DEVICE(Tclass<5> t, double *sma, int i, int j, int k) { // LAMBDA 5
+	     //	  float_sw4 ijac = strx(i) * stry(j) / jac(i, j, k);
+	  float_sw4 r1 = sma[0];
+	  float_sw4 r2 = sma[1];
+	  float_sw4 r3 = sma[2];
+	  //	  float_sw4 istrx = sma[3];
+	  float_sw4 istry = sma[4];
+	  //	  float_sw4 istrxy = istry * istrx;
 
           // rp - derivatives
           // 24*8 = 192 ops, tot=4355
@@ -2593,23 +2763,38 @@ void curvilinear4sg_ci(
                               mu(i - 1, j, k) * met(2, i - 1, j, k) *
                                   met(1, i - 1, j, k) * dwdrm1 * strx(i - 1))));
 
+
+	  sma[0] = r1;
+	   sma[1] = r2;
+	   sma[2] = r3;
+
+	}, [=] RAJA_DEVICE(Tclass<5> t, double *sma, int i, int j, int k) { // LAMBDA 6
+	     //	  float_sw4 ijac = strx(i) * stry(j) / jac(i, j, k);
+	  float_sw4 r1 = sma[0];
+	  float_sw4 r2 = sma[1];
+	  float_sw4 r3 = sma[2];
+	  float_sw4 istrx = sma[3];
+	  //	  float_sw4 istry = sma[4];
+	  //	  float_sw4 istrxy = istry * istrx;
           // rq - derivatives
           // 24*8 = 192 ops , tot=4694
 
-          dudrm2 = 0;
-          dudrm1 = 0;
-          dudrp1 = 0;
-          dudrp2 = 0;
-          dvdrm2 = 0;
-          dvdrm1 = 0;
-          dvdrp1 = 0;
-          dvdrp2 = 0;
-          dwdrm2 = 0;
-          dwdrm1 = 0;
-          dwdrp1 = 0;
-          dwdrp2 = 0;
+          float_sw4 dudrm2 = 0;
+          float_sw4 dudrm1 = 0;
+          float_sw4 dudrp1 = 0;
+          float_sw4 dudrp2 = 0;
+          float_sw4 dvdrm2 = 0;
+          float_sw4 dvdrm1 = 0;
+          float_sw4 dvdrp1 = 0;
+          float_sw4 dvdrp2 = 0;
+          float_sw4 dwdrm2 = 0;
+          float_sw4 dwdrm1 = 0;
+          float_sw4 dwdrp1 = 0;
+          float_sw4 dwdrp2 = 0;
           //#pragma unroll 8
-          for (int q = nk - 7; q <= nk; q++) {
+          //for (int q = nk - 7; q <= nk; q++) {
+	  for(int qq=0;qq<8;qq++){
+	    int q = nk-qq;
             dudrm2 -= bope(nk - k + 1, nk - q + 1) * u(1, i, j - 2, q);
             dvdrm2 -= bope(nk - k + 1, nk - q + 1) * u(2, i, j - 2, q);
             dwdrm2 -= bope(nk - k + 1, nk - q + 1) * u(3, i, j - 2, q);
@@ -2694,10 +2879,26 @@ void curvilinear4sg_ci(
                             met(1, i, j - 1, k) * dvdrm1))) *
                 istrx;
 
+	  sma[0] = r1;
+	   sma[1] = r2;
+	   sma[2] = r3;
+
+	}, [=] RAJA_DEVICE(Tclass<5> t, double *sma, int i, int j, int k) { // LAMBDA 7
+	  float_sw4 ijac = strx(i) * stry(j) / jac(i, j, k);
+	  float_sw4 r1 = sma[0];
+	  float_sw4 r2 = sma[1];
+	  float_sw4 r3 = sma[2];
+	  float_sw4 istrx = sma[3];
+	  float_sw4 istry = sma[4];
+	  //	  float_sw4 istrxy = istry * istrx;
+
           // pr and qr derivatives at once
           // in loop: 8*(53+53+43) = 1192 ops, tot=6037
-          //#pragma unroll 8
-          for (int q = nk - 7; q <= nk; q++) {
+	  //#pragma unroll 8
+	  for (int qq = 0; qq <8; qq++) {
+	    int q = nk-qq;
+	  //#pragma unroll 8 // HIP ADDS 3ms
+	  //for (int q = nk - 7; q <= nk; q++) {
             // (u-eq)
             // 53 ops
             r1 -= bope(nk - k + 1, nk - q + 1) *

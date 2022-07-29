@@ -1,6 +1,8 @@
 SW4CK(SW4 Curvilinear Kernels) consists of 5 stencil evaluation kernels that account for
 ~50% of the solution time in [**SW4**](https://github.com/geodynamics/sw4).
 
+In branch(low_register) , kernels 1 & 5 are split into 7 parts to control register usage. Registers used drops to 170 each
+compared to 256+spills for the original version
 Documentation
 ----------------
 

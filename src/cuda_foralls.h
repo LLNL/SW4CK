@@ -12,9 +12,20 @@
 #include <map>
 #include <sstream>
 #include <vector>
+
 cudaEvent_t newEvent();
 void insertEvent(cudaEvent_t &event);
 float timeEvent(cudaEvent_t &start, cudaEvent_t &stop);
+
+void CheckError(cudaError_t const err, const char *file, char const *const fun,
+		    const int line);
+
+#define CheckDeviceError(err)				\
+  CheckError((err), __FILE__, __FUNCTION__, __LINE__)
+
+#define SW4_PEEK CheckDeviceError(cudaPeekAtLastError());
+#define SYNC_STREAM CheckDeviceError(cudaStreamSynchronize(0))
+#define SYNC_DEVICE CheckDeviceError(cudaDeviceSynchronize())
 
 std::vector<int> factors(int N);
 std::vector<int> factors(int N, int start);
@@ -87,6 +98,7 @@ class Range {
     invalid = false;
     if (blocks <= 0) invalid = true;
   };
+  static const int value = N;
   int start;
   int end;
   int blocks;
@@ -436,5 +448,79 @@ void forall3async(Tag &t, T1 &irange, T2 &jrange, T3 &krange, LoopBody &&body) {
   forall3kernel<N><<<blocks, tpb>>>(t, irange.start, irange.end, jrange.start,
                                     jrange.end, krange.start, krange.end, body);
 }
+
+template <int N, int OCC, typename Tag, typename T1, typename T2, typename T3,
+          typename LoopBody>
+void forall3async(Tag &t, T1 &irange, T2 &jrange, T3 &krange, LoopBody &&body) {
+  if (irange.invalid || jrange.invalid || krange.invalid) return;
+  dim3 tpb(irange.tpb, jrange.tpb, krange.tpb);
+  dim3 blocks(irange.blocks, jrange.blocks, krange.blocks);
+  // std::cout<<"forall launch tpb"<<irange.tpb<<" "<<jrange.tpb<<"
+  // "<<krange.tpb<<"\n"; std::cout<<"forall launch blocks"<<irange.blocks<<"
+  // "<<jrange.blocks<<" "<<krange.blocks<<"\n";
+  forall3kernel<N><<<blocks, tpb>>>(t, irange.start, irange.end, jrange.start,
+                                    jrange.end, krange.start, krange.end, body);
+}
+
+
+// Split Fusion kernels
+template <int N, int WGS, int OCC, typename Tag, typename... Func>
+  __launch_bounds__(WGS)
+__global__ void forall3kernelSF(Tag t, const int start0, const int N0, const int start1, const int N1, const int start2, const int N2, Func... f) {
+  const int STORE=5;
+  //#define USE_SHARED_MEMORY 1
+#ifdef USE_SHARED_MEMORY
+  int off = (threadIdx.x+blockDim.x*threadIdx.y+blockDim.x*blockDim.y*threadIdx.z)*STORE;
+  __shared__ double sma[512*STORE];
+
+  double *carray = sma+off;
+#else
+  double carray[STORE];
+
+#endif
+  //double sma2[3];
+
+  int tid0 = start0 + threadIdx.x + blockIdx.x * blockDim.x;
+  int tid1 = start1 + threadIdx.y + blockIdx.y * blockDim.y;
+  int tid2 = start2 + threadIdx.z + blockIdx.z * blockDim.z;
+  if ((tid0 < N0) && (tid1 < N1) && (tid2 < N2)) {
+    (f(t, carray,tid0, tid1, tid2),...);
+  }
+}
+
+template <int N, int OCC, typename Tag, typename T1, typename T2, typename T3,
+  typename... LoopBodies>
+  void forall3asyncSF(Tag &t, T1 &irange, T2 &jrange, T3 &krange, LoopBodies &&... bodies) {
+
+  if (irange.invalid || jrange.invalid || krange.invalid) { std::cerr<<"Invalid ranges in forall3asyncSF \n";return;}
+  dim3 tpb(irange.tpb, jrange.tpb, krange.tpb);
+  dim3 blocks(irange.blocks, jrange.blocks, krange.blocks);
+//#define COMPILE_STANDALONE_KERNELS 1
+#ifdef COMPILE_STANDALONE_KERNELS
+  void *ptr;
+  if (cudaMalloc(&ptr, 24) != hipSuccess) {
+    std::cerr << "cudaMallocfailed for size 24 bytes\n";
+    abort();
+  }
+  float kernel_total = forall3recursor<N>(tpb,blocks,t,irange.start, irange.end, jrange.start,
+                     jrange.end, krange.start, krange.end,(double*)ptr, bodies...);
+
+  std::cout<<"Kernel total of single kernels is "<<kernel_total<<" ms\n";
+  CheckDeviceError(cudaFree(ptr));
+#endif
+
+#ifdef TIME_KERNEL
+ 
+#else
+
+  forall3kernelSF<N,T1::value*T2::value*T3::value,OCC><<< blocks, tpb>>>(
+		     t, irange.start, irange.end, jrange.start,
+  				     jrange.end, krange.start, krange.end, bodies...);
+
+#endif
+
+}
+
+
 
 #endif  // Guards
