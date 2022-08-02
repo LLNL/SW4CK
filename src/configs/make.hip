@@ -11,7 +11,7 @@ HSA_ROOT_DIR = ${ROCM_PATH}/hsa
 GCC_LINK_LINE = -L $(HIP_ROOT_DIR)/lib -L $(HSA_ROOT_DIR)/lib -lhsa-runtime64  -lm -lstdc++ -ldl
 
 
-MORE_FLAGS = -I${ROCM_PATH}/include -isystem ${ROCM_PATH}/llvm/lib/clang/12.0.0/include/.. -isystem ${ROCM_PATH}/hsa/include -isystem ${ROCM_PATH}/hip/include -D__HIP_ARCH_GFX90a__=1 --cuda-gpu-arch=gfx90a -O3 -x hip -Winconsistent-missing-override --amdgpu-target=gfx90a --save-temps -fgpu-rdc -DNO_RAJA=1 -Wall -Wno-unknown-pragmas
+MORE_FLAGS = -I${ROCM_PATH}/include -isystem ${ROCM_PATH}/llvm/lib/clang/12.0.0/include/.. -isystem ${ROCM_PATH}/hsa/include -isystem ${ROCM_PATH}/hip/include -D__HIP_ARCH_GFX90a__=1 --cuda-gpu-arch=gfx90a -O3 -x hip -Winconsistent-missing-override --amdgpu-target=gfx90a --save-temps -DNO_RAJA=1 -Wall -Wno-unknown-pragmas -fgpu-rdc
 
 
 LINKFLAGS =  -std=c++11  --amdgpu-target=gfx90a -fgpu-rdc

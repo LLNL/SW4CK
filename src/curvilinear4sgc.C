@@ -116,6 +116,25 @@ void curvilinear4sg_ci(
   // PREFETCH(a_mu);
   // PREFETCH(a_lambda);
 
+
+  // Lists to try to workaround the int32 bottleneck
+//   void *ptr;
+//   size_t size = ni*nj*nk*8;
+// #ifdef ENABLE_HIP
+//   if (hipMalloc(&ptr, size) != hipSuccess) {
+//     std::cerr << "hipMalloc failed for size " << size << " bytes\n";
+//     abort();
+//   }
+// #endif
+
+  // double *list1 = (double*)ptr;
+  // RAJA::RangeSegment k_range(1, 6 + 1);
+  //     RAJA::RangeSegment j_range(jfirst + 2, jlast - 1);
+  //     RAJA::RangeSegment i_range(ifirst + 2, ilast - 1);
+  //     for(int k=1;k<7;k++) for (int j=jfirst+2;j<jlast-1;j++) for (int i=ifirst+2;i<ilast-1;i++) {
+	    
+  // END LISTS
+
 #ifndef NO_RAJA
 #if defined(ENABLE_CUDA)
   using CURV_POL = RAJA::KernelPolicy<RAJA::statement::CudaKernelFixed<
@@ -363,6 +382,12 @@ void curvilinear4sg_ci(
             // All rr-derivatives at once
             // averaging the coefficient
             // 54*8*8+25*8 = 3656 ops, tot=3939
+
+	    int la_o[9];
+#pragma unroll 8
+	    for (int m=1;m <=8;m++){
+	      la_o[m]=base + (i) + ni * (j) + nij * (m);
+	    }
             float_sw4 mucofu2, mucofuv, mucofuw, mucofvw, mucofv2, mucofw2;
             //#pragma unroll 1 // slowdown due to register spills
             for (int q = 1; q <= 8; q++) {
@@ -377,29 +402,29 @@ void curvilinear4sg_ci(
 #endif
               for (int m = 1; m <= 8; m++) {
                 mucofu2 += acof(k, q, m) *
-                           ((2 * mu(i, j, m) + la(i, j, m)) * met(2, i, j, m) *
+		  ((2 * a_mu[la_o[m]] + a_lambda[la_o[m]]) * met(2, i, j, m) *
                                 strx(i) * met(2, i, j, m) * strx(i) +
                             mu(i, j, m) * (met(3, i, j, m) * stry(j) *
                                                met(3, i, j, m) * stry(j) +
                                            met(4, i, j, m) * met(4, i, j, m)));
                 mucofv2 += acof(k, q, m) *
-                           ((2 * mu(i, j, m) + la(i, j, m)) * met(3, i, j, m) *
+                           ((2 *a_mu[la_o[m]]  + a_lambda[la_o[m]]) * met(3, i, j, m) *
                                 stry(j) * met(3, i, j, m) * stry(j) +
                             mu(i, j, m) * (met(2, i, j, m) * strx(i) *
                                                met(2, i, j, m) * strx(i) +
                                            met(4, i, j, m) * met(4, i, j, m)));
                 mucofw2 += acof(k, q, m) *
-                           ((2 * mu(i, j, m) + la(i, j, m)) * met(4, i, j, m) *
+                           ((2 * a_mu[la_o[m]] + a_lambda[la_o[m]]) * met(4, i, j, m) *
                                 met(4, i, j, m) +
                             mu(i, j, m) * (met(2, i, j, m) * strx(i) *
                                                met(2, i, j, m) * strx(i) +
                                            met(3, i, j, m) * stry(j) *
                                                met(3, i, j, m) * stry(j)));
-                mucofuv += acof(k, q, m) * (mu(i, j, m) + la(i, j, m)) *
+                mucofuv += acof(k, q, m) * (a_mu[la_o[m]] + a_lambda[la_o[m]]) *
                            met(2, i, j, m) * met(3, i, j, m);
-                mucofuw += acof(k, q, m) * (mu(i, j, m) + la(i, j, m)) *
+                mucofuw += acof(k, q, m) * (a_mu[la_o[m]] + a_lambda[la_o[m]]) *
                            met(2, i, j, m) * met(4, i, j, m);
-                mucofvw += acof(k, q, m) * (mu(i, j, m) + la(i, j, m)) *
+                mucofvw += acof(k, q, m) * (a_mu[la_o[m]] + a_lambda[la_o[m]]) *
                            met(3, i, j, m) * met(4, i, j, m);
               }
 
