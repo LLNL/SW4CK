@@ -426,7 +426,7 @@ void curvilinear4sg_ci(
 		 double &M4 = met(4, i, j, m);
 
 		 double mula = a_mu[la_o[m]]+a_lambda[la_o[m]];
-		 double mula2 = mula + a_mu[la_o[m]];
+		 double mula2 = 2*a_mu[la_o[m]]+a_lambda[la_o[m]];
 
                 mucofu2 += acof(k, q, m) *
 		  (mula2 * M2 *
