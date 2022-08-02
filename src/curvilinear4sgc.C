@@ -391,21 +391,24 @@ void curvilinear4sg_ci(
             float_sw4 mucofu2, mucofuv, mucofuw, mucofvw, mucofv2, mucofw2;
             //#pragma unroll 1 // slowdown due to register spills
 
-	    double mulaa[9];
-	    double mulaa2[9];
+	    //double mulaa[9];
+	    //double mulaa2[9];
 	    int la_o[9];
 	    //int met2[9];
 	    //int met3[9];
 	    //int met4[9];
+	    //int idx = threadIdx.x + threadIdx.y* blockDim.x+threadIdx.z*blockDim.x*blockDim.y;
+	    //printf("INDX = %d\n",idx);
 #pragma unroll 8
 	    for (int m=1;m <=8;m++){
 	      la_o[m]=base + (i) + ni * (j) + nij * (m);
-	      mulaa[m] = mu(i,j,m)+la(i,j,m);
-	      mulaa2[m] = 2*mu(i,j,m)+la(i,j,m);
+	      //mulaa[m] = mu(i,j,m)+la(i,j,m);
+	      //mulaa2[m] = 2*mu(i,j,m)+la(i,j,m);
 	      //met2[m]=base4 + (i) + ni * (j) + nij * (m) + nijk * 2;
 	      //met3[m]=base4 + (i) + ni * (j) + nij * (m) + nijk * 3;
 	      //met4[m]=base4 + (i) + ni * (j) + nij * (m) + nijk * 4;
 	    }
+	    //__syncthreads(); // Not required but improves speed from 6.67-> 5.95 ms
 	    for (int q = 1; q <= 8; q++) {
               mucofu2 = 0;
               mucofuv = 0;
@@ -425,10 +428,12 @@ void curvilinear4sg_ci(
 		 double &M3 = met(3, i, j, m);
 		 double &M4 = met(4, i, j, m);
 
-		 //double mula = a_mu[la_o[m]]+a_lambda[la_o[m]];
-		 //double mula2 = 2*a_mu[la_o[m]]+a_lambda[la_o[m]];
-		 double &mula = mulaa[m];
-		 double &mula2 = mulaa2[m];
+		 //int &indx=la_o[9*idx+m]; // for shared memory
+		 int &indx = la_o[m];
+		 double mula = a_mu[indx]+a_lambda[indx];
+		 double mula2 = 2*a_mu[indx]+a_lambda[indx];
+		 //double &mula = mulaa[m];
+		 //double &mula2 = mulaa2[m];
 
                 mucofu2 += acof(k, q, m) *
 		  (mula2 * M2 *
