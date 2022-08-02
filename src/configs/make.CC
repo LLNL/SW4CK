@@ -21,3 +21,7 @@ EXTRA_CXX_FLAGS =  -I$(RAJA_LOCATION)/include  -DENABLE_HIP $(MORE_FLAGS) -DNO_R
 
 
 EXTRA_LINK_FLAGS = -L $(RAJA_LOCATION)/lib 
+
+ifeq ($(amd_unroll_fix),yes)
+MORE_FLAGS+=  -DAMD_UNROLL_FIX=1
+endif
