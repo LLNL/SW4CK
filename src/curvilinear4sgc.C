@@ -391,8 +391,8 @@ void curvilinear4sg_ci(
             float_sw4 mucofu2, mucofuv, mucofuw, mucofvw, mucofv2, mucofw2;
             //#pragma unroll 1 // slowdown due to register spills
 
-	    //double mula[9];
-	    //double mula2[9];
+	    double mulaa[9];
+	    double mulaa2[9];
 	    int la_o[9];
 	    //int met2[9];
 	    //int met3[9];
@@ -400,8 +400,8 @@ void curvilinear4sg_ci(
 #pragma unroll 8
 	    for (int m=1;m <=8;m++){
 	      la_o[m]=base + (i) + ni * (j) + nij * (m);
-	      //mula[m] = mu(i,j,m)+la(i,j,m);
-	      //mula2[m] = mula[m]+mu(i,j,m);
+	      mulaa[m] = mu(i,j,m)+la(i,j,m);
+	      mulaa2[m] = 2*mu(i,j,m)+la(i,j,m);
 	      //met2[m]=base4 + (i) + ni * (j) + nij * (m) + nijk * 2;
 	      //met3[m]=base4 + (i) + ni * (j) + nij * (m) + nijk * 3;
 	      //met4[m]=base4 + (i) + ni * (j) + nij * (m) + nijk * 4;
@@ -425,8 +425,10 @@ void curvilinear4sg_ci(
 		 double &M3 = met(3, i, j, m);
 		 double &M4 = met(4, i, j, m);
 
-		 double mula = a_mu[la_o[m]]+a_lambda[la_o[m]];
-		 double mula2 = 2*a_mu[la_o[m]]+a_lambda[la_o[m]];
+		 //double mula = a_mu[la_o[m]]+a_lambda[la_o[m]];
+		 //double mula2 = 2*a_mu[la_o[m]]+a_lambda[la_o[m]];
+		 double &mula = mulaa[m];
+		 double &mula2 = mulaa2[m];
 
                 mucofu2 += acof(k, q, m) *
 		  (mula2 * M2 *
