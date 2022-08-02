@@ -15,7 +15,7 @@ HSA_ROOT_DIR = ${ROCM_PATH}/hsa
 #MORE_FLAGS = -I${ROCM_PATH}/include -Ofast  -x hip -Winconsistent-missing-override  -Wall -Wno-unknown-pragmas --rocm-path=${ROCM_PATH} --offload-arch=gfx90a -fsave-loopmark -fno-cray
 MORE_FLAGS = -I${ROCM_PATH}/include -Ofast  -x hip -Winconsistent-missing-override  -Wall -Wno-unknown-pragmas --rocm-path=${ROCM_PATH} --offload-arch=gfx90a:xnack-:sramecc+
 
-LINKFLAGS =  -std=c++11 -x hip  --offload-arch=gfx90a:xnack-:sramecc+ 
+LINKFLAGS =  -std=c++11 --hip-link --offload-arch=gfx90a:xnack-:sramecc+ -L ${HIP_PATH}/lib -lamdhip64
 
 EXTRA_CXX_FLAGS =  -I$(RAJA_LOCATION)/include  -DENABLE_HIP $(MORE_FLAGS) -DNO_RAJA=1
 
