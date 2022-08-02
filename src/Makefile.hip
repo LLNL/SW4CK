@@ -19,7 +19,7 @@ FSW4 = $(addprefix $(builddir)/,$(OBJSW4))
 FOBJ = $(addprefix $(builddir)/,$(OBJ)) $(addprefix $(builddir)/,$(QUADPACK))
 
 # prefix
-sw4ck: $(FSW4) $(FOBJ)
+sw4ck: $(FSW4) $(FOBJ) cuda_foralls.h  foralls.h  hip_foralls.h  SW4CKConfig.h
 	@echo "*** Configuration file: '" $(foundincfile) "' ***"
 	@echo "********* User configuration variables **************"
 	@echo "debug=" $(debug) " proj=" $(proj) " etree=" $(etree) " SW4ROOT"= $(SW4ROOT) 
