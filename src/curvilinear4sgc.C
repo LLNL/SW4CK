@@ -384,13 +384,19 @@ void curvilinear4sg_ci(
             // 54*8*8+25*8 = 3656 ops, tot=3939
 
 	    int la_o[9];
+	    int met2[9];
+	    int met3[9];
+	    int met4[9];
 #pragma unroll 8
 	    for (int m=1;m <=8;m++){
 	      la_o[m]=base + (i) + ni * (j) + nij * (m);
+	      met2[m]=base4 + (i) + ni * (j) + nij * (m) + nijk * 2;
+	      met3[m]=base4 + (i) + ni * (j) + nij * (m) + nijk * 3;
+	      met4[m]=base4 + (i) + ni * (j) + nij * (m) + nijk * 4;
 	    }
             float_sw4 mucofu2, mucofuv, mucofuw, mucofvw, mucofv2, mucofw2;
             //#pragma unroll 1 // slowdown due to register spills
-            for (int q = 1; q <= 8; q++) {
+	    for (int q = 1; q <= 8; q++) {
               mucofu2 = 0;
               mucofuv = 0;
               mucofuw = 0;
@@ -401,31 +407,39 @@ void curvilinear4sg_ci(
 #pragma unroll 8 // slowdown due to register spills
 #endif
               for (int m = 1; m <= 8; m++) {
+		double &M2 = a_met[met2[m]];
+		double &M3 = a_met[met3[m]];
+		double &M4 = a_met[met4[m]];
+
+		// double &M2 = met(2, i, j, m);
+		// double &M3 = met(3, i, j, m);
+		// double &M4 = met(4, i, j, m);
+
                 mucofu2 += acof(k, q, m) *
-		  ((2 * a_mu[la_o[m]] + a_lambda[la_o[m]]) * met(2, i, j, m) *
-                                strx(i) * met(2, i, j, m) * strx(i) +
-                            mu(i, j, m) * (met(3, i, j, m) * stry(j) *
-                                               met(3, i, j, m) * stry(j) +
-                                           met(4, i, j, m) * met(4, i, j, m)));
+		  ((2 * a_mu[la_o[m]] + a_lambda[la_o[m]]) * M2 *
+                                strx(i) * M2 * strx(i) +
+                             a_mu[la_o[m]]* (M3 * stry(j) *
+                                               M3 * stry(j) +
+                                           M4* M4));
                 mucofv2 += acof(k, q, m) *
-                           ((2 *a_mu[la_o[m]]  + a_lambda[la_o[m]]) * met(3, i, j, m) *
-                                stry(j) * met(3, i, j, m) * stry(j) +
-                            mu(i, j, m) * (met(2, i, j, m) * strx(i) *
-                                               met(2, i, j, m) * strx(i) +
-                                           met(4, i, j, m) * met(4, i, j, m)));
+                           ((2 *a_mu[la_o[m]]  + a_lambda[la_o[m]]) * M3 *
+                                stry(j) * M3 * stry(j) +
+                             a_mu[la_o[m]]* (M2 * strx(i) *
+                                               M2 * strx(i) +
+                                           M4 * M4));
                 mucofw2 += acof(k, q, m) *
-                           ((2 * a_mu[la_o[m]] + a_lambda[la_o[m]]) * met(4, i, j, m) *
-                                met(4, i, j, m) +
-                            mu(i, j, m) * (met(2, i, j, m) * strx(i) *
-                                               met(2, i, j, m) * strx(i) +
-                                           met(3, i, j, m) * stry(j) *
-                                               met(3, i, j, m) * stry(j)));
+                           ((2 * a_mu[la_o[m]] + a_lambda[la_o[m]]) * M4 *
+                                M4 +
+                             a_mu[la_o[m]]* (M2 * strx(i) *
+                                               M2 * strx(i) +
+                                           M3 * stry(j) *
+                                               M3 * stry(j)));
                 mucofuv += acof(k, q, m) * (a_mu[la_o[m]] + a_lambda[la_o[m]]) *
-                           met(2, i, j, m) * met(3, i, j, m);
+                           M2 * M3;
                 mucofuw += acof(k, q, m) * (a_mu[la_o[m]] + a_lambda[la_o[m]]) *
-                           met(2, i, j, m) * met(4, i, j, m);
+                           M2 * M4;
                 mucofvw += acof(k, q, m) * (a_mu[la_o[m]] + a_lambda[la_o[m]]) *
-                           met(3, i, j, m) * met(4, i, j, m);
+                           M3 * M4;
               }
 
               // Computing the second derivative,
