@@ -29,3 +29,6 @@ MORE_FLAGS+=  --save-temps
 else
 MORE_FLAGS+= -fgpu-rdc
 endif
+ifeq ($(magic_sync),yes)
+MORE_FLAGS+=  -DMAGIC_SYNC=1
+endif

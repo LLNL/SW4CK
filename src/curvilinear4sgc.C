@@ -408,7 +408,9 @@ void curvilinear4sg_ci(
 	      //met3[m]=base4 + (i) + ni * (j) + nij * (m) + nijk * 3;
 	      //met4[m]=base4 + (i) + ni * (j) + nij * (m) + nijk * 4;
 	    }
+#ifdef MAGIC_SYNC
 	    __syncthreads(); // Not required but improves speed from 6.67-> 5.95 ms
+#endif
 	    for (int q = 1; q <= 8; q++) {
               mucofu2 = 0;
               mucofuv = 0;
@@ -1002,6 +1004,9 @@ void curvilinear4sg_ci(
                    mux4 * (u(1, i, j + 2, k) - u(1, i, j, k))) *
                   istrx;
           }
+#ifdef MAGIC_SYNC
+	  __syncthreads();
+#endif
           // rr derivative (u)
           // 5*11+14+14=83 ops, tot=184
           {
@@ -1047,6 +1052,7 @@ void curvilinear4sg_ci(
                    mux4 * (u(1, i, j, k + 2) - u(1, i, j, k))) *
                   istrxy;
           }
+	  //__syncthreads();
           // rr derivative (v)
           // 42 ops, tot=226
           cof1 = (mu(i, j, k - 2) + la(i, j, k - 2)) * met(2, i, j, k - 2) *
@@ -1424,7 +1430,7 @@ void curvilinear4sg_ci(
           mux2 = cof1 + cof4 + 3 * (cof3 + cof2);
           mux3 = cof2 + cof5 + 3 * (cof4 + cof3);
           mux4 = cof4 - tf * (cof3 + cof5);
-
+	  //__syncthreads(); Slows down code
           r2 += i6 *
                 (mux1 * (u(2, i, j - 2, k) - u(2, i, j, k)) +
                  mux2 * (u(2, i, j - 1, k) - u(2, i, j, k)) +
@@ -2399,7 +2405,9 @@ void curvilinear4sg_ci(
           // 54*8*8+25*8 = 3656 ops, tot=3939
           float_sw4 mucofu2, mucofuv, mucofuw, mucofvw, mucofv2, mucofw2;
           //#pragma unroll 8
+#ifdef MAGIC_SYNC
 	  __syncthreads();
+#endif
           for (int q = nk - 7; q <= nk; q++) {
             mucofu2 = 0;
             mucofuv = 0;
