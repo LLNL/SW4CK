@@ -2399,6 +2399,7 @@ void curvilinear4sg_ci(
           // 54*8*8+25*8 = 3656 ops, tot=3939
           float_sw4 mucofu2, mucofuv, mucofuw, mucofvw, mucofv2, mucofw2;
           //#pragma unroll 8
+	  __syncthreads();
           for (int q = nk - 7; q <= nk; q++) {
             mucofu2 = 0;
             mucofuv = 0;
