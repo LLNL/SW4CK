@@ -408,7 +408,7 @@ void curvilinear4sg_ci(
 	      //met3[m]=base4 + (i) + ni * (j) + nij * (m) + nijk * 3;
 	      //met4[m]=base4 + (i) + ni * (j) + nij * (m) + nijk * 4;
 	    }
-	    //__syncthreads(); // Not required but improves speed from 6.67-> 5.95 ms
+	    __syncthreads(); // Not required but improves speed from 6.67-> 5.95 ms
 	    for (int q = 1; q <= 8; q++) {
               mucofu2 = 0;
               mucofuv = 0;
