@@ -505,6 +505,9 @@ void curvilinear4sg_ci(
 	    sma[0] = r1;
 	sma[1] = r2;
 	sma[2] = r3;
+#ifdef MAGIC_SYNC
+__syncthreads(); // Faster only if HSA_XNACK is set to 1
+#endif
 	    }
 		    },[=] RAJA_DEVICE(Tclass<1> t, double *sma, int i, int j,int k) L_ATTR {  // LAMBDA 4 2 regs standalone 68 HIP SA 86
 
