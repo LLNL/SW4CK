@@ -368,6 +368,9 @@ void curvilinear4sg_ci(
                           istrx;
 
 	    sma[2]=r3;
+#ifdef MAGIC_SYNC
+__syncthreads(); // Faster only if HSA_XNACK is not set
+#endif
 	  },[=] RAJA_DEVICE(Tclass<1> t, double *sma, int i, int j, int k)  L_ATTR { 
 	    //float_sw4 ijac = strx(i) * stry(j) / jac(i, j, k);
 	    float_sw4 istry = sma[4];
