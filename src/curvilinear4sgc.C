@@ -2454,6 +2454,9 @@ __syncthreads(); // Faster only if HSA_XNACK is set to 1
 	  sma[2] = r3;
 	  sma[3] = istrx;
 	  sma[4] = istry;
+#ifdef MAGIC_SYNC
+__syncthreads(); // Faster only if HSA_XNACK is not set
+#endif
 
 	}, [=] RAJA_DEVICE(Tclass<5> t, double *sma, int i, int j, int k) { // LAMBDA 2
 	  
@@ -2515,7 +2518,6 @@ __syncthreads(); // Faster only if HSA_XNACK is set to 1
                          (mu(i, j, m) + la(i, j, m)) * met(3, i, j, m) *
                          met(4, i, j, m);
             }
-
             // Computing the second derivative,
             r1 += istrxy * mucofu2 * u(1, i, j, q) + mucofuv * u(2, i, j, q) +
                   istry * mucofuw * u(3, i, j, q);
