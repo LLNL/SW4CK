@@ -13,7 +13,7 @@
 #include <map>
 #include <sstream>
 #include <vector>
-
+#define MAGIC_SPELL __syncthreads()
 #include "hip/hip_ext.h"
 #include "hip/hip_runtime.h"
 #include "hip/hip_runtime_api.h"

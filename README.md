@@ -1,6 +1,10 @@
 SW4CK(SW4 Curvilinear Kernels) consists of 5 stencil evaluation kernels that account for
 ~50% of the solution time in [**SW4**](https://github.com/geodynamics/sw4).
 
+This branch contains mods made at the Crusher Hackathon Aug-2-4 2022. These include:
+1. Using an index array to remove unrolling. Register use and perf remain the same
+2. The use of "magic" syncthreadss to remove regsiter spilling in kernels 1,2 and 5 ( Use make amd_unroll_fix=yes magic_sync=yes )
+
 Documentation
 ----------------
 
