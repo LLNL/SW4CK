@@ -185,7 +185,7 @@ void curvilinear4sg_ci(
       Tclass<1> tag1(4.6441);
       insertEvent(start0);
       forall3asyncSF<__LINE__,2>(
-			     tag1, I, J, K, [=] RAJA_DEVICE(Tclass<1> t, double *sma, int i, int j,int k) { 
+			     tag1, I, J, K, [=] RAJA_DEVICE(Tclass<1> t, double *sma, int i, int j,int k) L_ATTR { 
 
 #else
       RAJA::RangeSegment k_range(1, 6 + 1);
@@ -732,7 +732,7 @@ __syncthreads(); // Faster only if HSA_XNACK is set to 1
 	    sma[1] = r2;
 	    sma[2] = r3;
 
-	    },[=] RAJA_DEVICE(Tclass<1> t, double *sma, int i, int j,int k) {  // LAMBDA 6 99 HIPSA 87
+	    },[=] RAJA_DEVICE(Tclass<1> t, double *sma, int i, int j,int k) L_ATTR {  // LAMBDA 6 99 HIPSA 87
 	    float_sw4 istrx = sma[3];
 	    float_sw4 r1,r2,r3;
 		      r1 = sma[0];
