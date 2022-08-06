@@ -36,8 +36,9 @@ __global__ void K2kernel(int start0, int N0, int start1, int N1, int start2, int
 
   int i = start0 + threadIdx.x + blockIdx.x * blockDim.x;
   int j = start1 + threadIdx.y + blockIdx.y * blockDim.y;
-  int k = start2 + threadIdx.z + blockIdx.z * blockDim.z;
-  if ((i < N0) && (j < N1) && (k < N2)) {
+  //  int k = start2 + threadIdx.z + blockIdx.z * blockDim.z;
+  if ((i < N0) && (j < N1)) {
+    for(int k=start2;k<N2;k++){
   
   // #pragma ivdep
           // 	 for( int i=ifirst+2; i <= ilast-2 ; i++ )
@@ -438,5 +439,6 @@ __global__ void K2kernel(int start0, int N0, int start1, int N1, int start2, int
 
           // 4 ops, tot=773
           lu(1, i, j, k) = a1 * lu(1, i, j, k) + sgn * r1 * ijac;
+  }
   }
 }

@@ -854,24 +854,29 @@ void curvilinear4sg_ci(
 	  auto start1 = newEvent();
     auto stop1 = newEvent();
 	  
-    Range<64> I(ifirst + 2, ilast - 1);  // 16.861ms for 64,2,2
-    Range<2> J(jfirst + 2, jlast - 1);
-	  Range<2> K(kstart, kend + 1);  // Changed for CUrvi-MR Was klast-1
+    Range<16> IK(ifirst + 2, ilast - 1);  // 16.861ms for 64,2,2
+    Range<16> JK(jfirst + 2, jlast - 1);
+	  Range<2> KK(kstart, kend + 1);  // Changed for CUrvi-MR Was klast-1
     // std::cout<<"KSTART END"<<kstart<<" "<<kend<<"\n";
     // forall3GS(IS,JS,KS, [=]RAJA_DEVICE(int i,int j,int k){
     // Use 168 regissters , no spills
 
-	  dim3 tpb(I.tpb,J.tpb,K.tpb);
-	  dim3 blocks(I.blocks,J.blocks,K.blocks);
+	  dim3 tpb(IK.tpb,JK.tpb,1);
+	  dim3 blocks(IK.blocks,JK.blocks,1);
 	  insertEvent(start1);
 	  hipLaunchKernelGGL(K2kernel, blocks, tpb, 0, 0,
-                        I.start, I.end, J.start, J.end,
-                        K.start, K.end,
+                        IK.start, IK.end, JK.start, JK.end,
+                        KK.start, KK.end,
 			     a_u,a_mu,a_lambda,a_met,a_jac,a_lu,a_strx,a_stry,
 			     ifirst,ilast,jfirst,jlast,kfirst,klast,a1,sgn);
  
     insertEvent(stop1);
     std::cout << "Kernel 2 time " << timeEvent(start1, stop1) << "\n";
+
+
+	  Range<64> I(ifirst + 2, ilast - 1);  // 16.861ms for 64,2,2
+	  Range<2> J(jfirst + 2, jlast - 1);
+	  Range<2> K(kstart, kend + 1);  // Changed for CUrvi-MR Was klast-1
 
 #ifdef PEEKS_GALORE
     SW4_PEEK;
