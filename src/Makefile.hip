@@ -11,7 +11,7 @@ endif
 
 OBJSW4 = 
 
-OBJ  = curvitest.o curvilinear4sgc.o Events.o
+OBJ  = curvitest.o curvilinear4sgc.o Events.o K2.o
 
 
 # prefix object files with build directory
