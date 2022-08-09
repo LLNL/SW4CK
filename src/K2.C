@@ -36,10 +36,56 @@ __global__ void K2kernel(int start0, int N0, int start1, int N1, int start2, int
 
   int i = start0 + threadIdx.x + blockIdx.x * blockDim.x;
   int j = start1 + threadIdx.y + blockIdx.y * blockDim.y;
+  int ii=threadIdx.x+2;
+  int jj=threadIdx.y+2;
+  __shared__ float_sw4 su[20][20]; // Hardwired for 16x16 blocks PBUGS
   //  int k = start2 + threadIdx.z + blockIdx.z * blockDim.z;
   if ((i < N0) && (j < N1)) {
     for(int k=start2;k<N2;k++){
   
+      su[threadIdx.x+2][threadIdx.y+2]=u(2,i,j,k);
+
+      if (threadIdx.x==0){
+	su[threadIdx.x][threadIdx.y+2]=u(2,i-2,j,k);
+	su[threadIdx.x+1][threadIdx.y+2]=u(2,i-1,j,k);
+	if (threadIdx.y==0){
+	  su[threadIdx.x][threadIdx.y]=u(2,i-2,j-2,k);
+	  su[threadIdx.x][threadIdx.y+1]=u(2,i-2,j-1,k);
+	  su[threadIdx.x+1][threadIdx.y]=u(2,i-1,j-2,k);
+	  su[threadIdx.x+1][threadIdx.y+1]=u(2,i-1,-1,k);
+	}
+      }
+      if (threadIdx.x==15){
+	su[threadIdx.x+3][threadIdx.y+2]=u(2,i+1,j,k);
+	su[threadIdx.x+4][threadIdx.y+2]=u(2,i+2,j,k);
+	if (threadIdx.y==15){
+	  su[threadIdx.x+3][threadIdx.y+3]=u(2,i+1,j+1,k);
+	  su[threadIdx.x+4][threadIdx.y+4]=u(2,i+2,j+2,k);
+	  su[threadIdx.x+3][threadIdx.y+4]=u(2,i+1,j+2,k);
+	  su[threadIdx.x+4][threadIdx.y+3]=u(2,i+2,j+1,k);
+	}
+      }
+      if (threadIdx.y==0){
+	su[threadIdx.x+2][threadIdx.y]=u(2,i,j-2,k);
+	su[threadIdx.x+2][threadIdx.y+1]=u(2,j-1,j,k);
+	if (threadIdx.x==15){
+	  su[threadIdx.x+4][threadIdx.y]=u(2,i+2,j-2,k);
+	  su[threadIdx.x+3][threadIdx.y+1] = u(2,i+1,j-1,k);
+	  su[threadIdx.x+3][threadIdx.y]=u(2,i+1,j-2,k);
+	  su[threadIdx.x+4][threadIdx.y+1] = u(2,i+2,j-1,k);
+	}
+      }
+      if (threadIdx.y==15){
+	su[threadIdx.x+2][threadIdx.y+3]=u(2,i,j+1,k);
+	su[threadIdx.x+2][threadIdx.y+4]=u(2,i,j+2,k);
+	if (threadIdx.x==0){
+	  su[threadIdx.x][threadIdx.y+4]=u(2,i-2,j+2,k);
+	  su[threadIdx.x+1][threadIdx.y+3]=u(2,i-1,j+1,k);
+	  su[threadIdx.x+1][threadIdx.y+4]=u(2,i-1,j+2,k);
+	  su[threadIdx.x][threadIdx.y+3]=u(2,i-2,j+1,k);
+	}
+      }
+       
   // #pragma ivdep
           // 	 for( int i=ifirst+2; i <= ilast-2 ; i++ )
           // 	 {
@@ -165,10 +211,10 @@ __global__ void K2kernel(int start0, int N0, int start1, int N1, int start2, int
           mux3 = cof2 + cof5 + 3 * (cof4 + cof3);
           mux4 = cof4 - tf * (cof3 + cof5);
 
-          r1 += i6 * (mux1 * (u(2, i, j, k - 2) - u(2, i, j, k)) +
-                      mux2 * (u(2, i, j, k - 1) - u(2, i, j, k)) +
-                      mux3 * (u(2, i, j, k + 1) - u(2, i, j, k)) +
-                      mux4 * (u(2, i, j, k + 2) - u(2, i, j, k)));
+          r1 += i6 * (mux1 * (u(2, i, j, k - 2) - su[ii][jj]) +
+                      mux2 * (u(2, i, j, k - 1) - su[ii][jj]) +
+                      mux3 * (u(2, i, j, k + 1) - su[ii][jj]) +
+                      mux4 * (u(2, i, j, k + 2) - su[ii][jj]));
 
           // rr derivative (w)
           // 43 ops, tot=269
