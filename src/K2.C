@@ -85,7 +85,52 @@ __global__ void K2kernel(int start0, int N0, int start1, int N1, int start2, int
 	  su[threadIdx.x][threadIdx.y+3]=u(2,i-2,j+1,k);
 	}
       }
-       
+      int b1 = blockIdx.x;
+      int b2 = blockIdx.y;
+      __syncthreads();
+      // Halos of partial blocks
+      if (i==(N0-1)){
+	su[threadIdx.x+3][threadIdx.y+2]=u(2,i+1,j,k);
+	su[threadIdx.x+4][threadIdx.y+2]=u(2,i+2,j,k);
+	if (j==(N1-1)){
+	  su[threadIdx.x+3][threadIdx.y+3]=u(2,i+1,j+1,k);
+	  su[threadIdx.x+4][threadIdx.y+4]=u(2,i+2,j+2,k);
+	  su[threadIdx.x+3][threadIdx.y+4]=u(2,i+1,j+2,k);
+	  su[threadIdx.x+4][threadIdx.y+3]=u(2,i+2,j+1,k);
+	}
+	if (threadIdx.y==0){
+	  su[threadIdx.x+4][threadIdx.y]=    u(2,i+2,j-2,k);
+	  su[threadIdx.x+3][threadIdx.y+1] = u(2,i+1,j-1,k);
+	  su[threadIdx.x+3][threadIdx.y]=    u(2,i+1,j-2,k);
+	  su[threadIdx.x+4][threadIdx.y+1] = u(2,i+2,j-1,k);
+	}
+	if (threadIdx.y==15){
+	  su[threadIdx.x+3][threadIdx.y+3]=u(2,i+1,j+1,k);
+	  su[threadIdx.x+4][threadIdx.y+4]=u(2,i+2,j+2,k);
+	  su[threadIdx.x+3][threadIdx.y+4]=u(2,i+1,j+2,k);
+	  su[threadIdx.x+4][threadIdx.y+3]=u(2,i+2,j+1,k);
+	}
+	  
+      }
+      if (j==(N1-1)){
+	su[threadIdx.x+2][threadIdx.y+3]=u(2,i,j+1,k);
+	su[threadIdx.x+2][threadIdx.y+4]=u(2,i,j+2,k);
+	if (threadIdx.x==0){
+	  //if (k==start2) printf("FIXING BLOCK %d %d -> %d %d %d\n",b1,b2,ii,jj,k);
+	  su[threadIdx.x][threadIdx.y+4]=u(2,i-2,j+2,k);
+	  su[threadIdx.x+1][threadIdx.y+3]=u(2,i-1,j+1,k);
+	  su[threadIdx.x+1][threadIdx.y+4]=u(2,i-1,j+2,k);
+	  su[threadIdx.x][threadIdx.y+3]=u(2,i-2,j+1,k);
+	}
+	if (threadIdx.x==15){
+	  su[threadIdx.x+3][threadIdx.y+3]=u(2,i+1,j+1,k);
+	  su[threadIdx.x+4][threadIdx.y+4]=u(2,i+2,j+2,k);
+	  su[threadIdx.x+3][threadIdx.y+4]=u(2,i+1,j+2,k);
+	  su[threadIdx.x+4][threadIdx.y+3]=u(2,i+2,j+1,k);
+	}
+      }
+	
+      __syncthreads();
   // #pragma ivdep
           // 	 for( int i=ifirst+2; i <= ilast-2 ; i++ )
           // 	 {
@@ -242,10 +287,16 @@ __global__ void K2kernel(int start0, int N0, int start1, int N1, int start2, int
 
           // pq-derivatives
           // 38 ops, tot=307
+	  // if (k==start2){
+	    
+	  //   float_sw4 diff=(u(2,i+2,j+2,k)-su[ii+2][jj+2]);
+	  //   if (diff!=0.0)
+	  //     printf(" BOOM BUD = (%d , %d) (%d %d, %d, %d, %g\n",b1,b2,i,j,ii,jj,diff);
+	  // }
           r1 +=
               c2 *
                   (mu(i, j + 2, k) * met(1, i, j + 2, k) * met(1, i, j + 2, k) *
-                       (c2 * (u(2, i + 2, j + 2, k) - u(2, i - 2, j + 2, k)) +
+		   (c2 * (su[ii+2][jj+2] - su[ii-2][jj+2]) +
                         c1 * (u(2, i + 1, j + 2, k) - u(2, i - 1, j + 2, k))) -
                    mu(i, j - 2, k) * met(1, i, j - 2, k) * met(1, i, j - 2, k) *
                        (c2 * (u(2, i + 2, j - 2, k) - u(2, i - 2, j - 2, k)) +
