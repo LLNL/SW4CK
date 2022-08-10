@@ -854,15 +854,22 @@ void curvilinear4sg_ci(
 	  auto start1 = newEvent();
     auto stop1 = newEvent();
 	  
-    Range<16> IK(ifirst + 2, ilast - 1);  // 16.861ms for 64,2,2
-    Range<16> JK(jfirst + 2, jlast - 1);
+#ifdef ENABLE_HIP
+    Range<64> IK(ifirst + 2, ilast - 1);  // 16.861ms for 64,2,2
+    Range<2> JK(jfirst + 2, jlast - 1);
 	  Range<2> KK(kstart, kend + 1);  // Changed for CUrvi-MR Was klast-1
+#endif
+#ifdef ENABLE_CUDA
+Range<64> IK(ifirst + 2, ilast - 1);  // 16.861ms for 64,2,2
+    Range<2> JK(jfirst + 2, jlast - 1);
+	  Range<2> KK(kstart, kend + 1);  // Changed for CUrvi-MR Was klast-1
+#endif
     // std::cout<<"KSTART END"<<kstart<<" "<<kend<<"\n";
     // forall3GS(IS,JS,KS, [=]RAJA_DEVICE(int i,int j,int k){
     // Use 168 regissters , no spills
 
-	  dim3 tpb(IK.tpb,JK.tpb,1);
-	  dim3 blocks(IK.blocks,JK.blocks,1);
+	  dim3 tpb(IK.tpb,JK.tpb,KK.tpb);
+	  dim3 blocks(IK.blocks,JK.blocks,KK.blocks);
 	  insertEvent(start1);
 #ifdef ENABLE_HIP
 	  hipLaunchKernelGGL(K2kernel, blocks, tpb, 0, 0,
