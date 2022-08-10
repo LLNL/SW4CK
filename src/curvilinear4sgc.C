@@ -864,13 +864,21 @@ void curvilinear4sg_ci(
 	  dim3 tpb(IK.tpb,JK.tpb,1);
 	  dim3 blocks(IK.blocks,JK.blocks,1);
 	  insertEvent(start1);
+#ifdef ENABLE_HIP
 	  hipLaunchKernelGGL(K2kernel, blocks, tpb, 0, 0,
                         IK.start, IK.end, JK.start, JK.end,
                         KK.start, KK.end,
 			     a_u,a_mu,a_lambda,a_met,a_jac,a_lu,a_strx,a_stry,
 			     ifirst,ilast,jfirst,jlast,kfirst,klast,a1,sgn);
+#endif
+#ifdef ENABLE_CUDA
+	  K2kernel<<<blocks,tpb>>>(IK.start, IK.end, JK.start, JK.end,
+                        KK.start, KK.end,
+			     a_u,a_mu,a_lambda,a_met,a_jac,a_lu,a_strx,a_stry,
+			     ifirst,ilast,jfirst,jlast,kfirst,klast,a1,sgn);
+#endif
  
-    insertEvent(stop1);
+	  insertEvent(stop1);
     std::cout << "Kernel 2 time " << timeEvent(start1, stop1) << "\n";
 
 

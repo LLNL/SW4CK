@@ -1,6 +1,8 @@
+#ifdef ENABLE_HIP
 #include "hip/hip_ext.h"
 #include "hip/hip_runtime.h"
 #include "hip/hip_runtime_api.h"
+#endif
 #define float_sw4 double
 __launch_bounds__(256,2) 
 __global__ void K2kernel(int start0, int N0, int start1, int N1, int start2, int N2,
