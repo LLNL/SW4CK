@@ -326,10 +326,10 @@ __global__ void K2kernel(int start0, int N0, int start1, int N1, int start2, int
               c1 *
                   (la(i + 1, j, k) * met(1, i + 1, j, k) * met(1, i + 1, j, k) *
                        (c2 * (su[ii + 1][jj + 2] - su[ii + 1][jj - 2]) +
-                        c1 * (u(2, i + 1, j + 1, k) - u(2, i + 1, j - 1, k))) -
+                        c1 * (su[ii + 1][jj + 1] - su[ii + 1][jj - 1])) -
                    la(i - 1, j, k) * met(1, i - 1, j, k) * met(1, i - 1, j, k) *
-                       (c2 * (u(2, i - 1, j + 2, k) - u(2, i - 1, j - 2, k)) +
-                        c1 * (u(2, i - 1, j + 1, k) - u(2, i - 1, j - 1, k))));
+                       (c2 * (su[ii - 1][jj + 2] - su[ii - 1][jj - 2]) +
+                        c1 * (su[ii - 1][jj + 1] - su[ii - 1][jj - 1])));
 
           // pr-derivatives
           // 130 ops., tot=475
