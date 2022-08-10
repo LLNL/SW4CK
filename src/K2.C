@@ -66,8 +66,8 @@ __global__ void K2kernel(int start0, int N0, int start1, int N1, int start2, int
 	}
       }
       if (threadIdx.y==0){
-	su[threadIdx.x+2][threadIdx.y]=u(2,i,j-2,k);
-	su[threadIdx.x+2][threadIdx.y+1]=u(2,j-1,j,k);
+	su[threadIdx.x+2][threadIdx.y]=  u(2,i,j-2,k);
+	su[threadIdx.x+2][threadIdx.y+1]=u(2,i,j-1,k);
 	if (threadIdx.x==15){
 	  su[threadIdx.x+4][threadIdx.y]=u(2,i+2,j-2,k);
 	  su[threadIdx.x+3][threadIdx.y+1] = u(2,i+1,j-1,k);
@@ -287,19 +287,21 @@ __global__ void K2kernel(int start0, int N0, int start1, int N1, int start2, int
 
           // pq-derivatives
           // 38 ops, tot=307
-	  // if (k==start2){
+#ifdef DEBUG
+	  if (k==start2){
 	    
-	  //   float_sw4 diff=(u(2,i+2,j+2,k)-su[ii+2][jj+2]);
-	  //   if (diff!=0.0)
-	  //     printf(" BOOM BUD = (%d , %d) (%d %d, %d, %d, %g\n",b1,b2,i,j,ii,jj,diff);
-	  // }
+	    float_sw4 diff=(u(2,i+2,j-2,k)-su[ii+2][jj-2]);
+	    if (diff!=0.0)
+	      printf(" BOOM BUD = (%d , %d) (%d %d, %d, %d, %g\n",b1,b2,i,j,ii,jj,diff);
+	  }
+#endif
           r1 +=
               c2 *
                   (mu(i, j + 2, k) * met(1, i, j + 2, k) * met(1, i, j + 2, k) *
 		   (c2 * (su[ii+2][jj+2] - su[ii-2][jj+2]) +
-                        c1 * (u(2, i + 1, j + 2, k) - u(2, i - 1, j + 2, k))) -
+                        c1 * (su[ii + 1][ jj + 2] - su[ii - 1][ jj + 2])) -
                    mu(i, j - 2, k) * met(1, i, j - 2, k) * met(1, i, j - 2, k) *
-                       (c2 * (u(2, i + 2, j - 2, k) - u(2, i - 2, j - 2, k)) +
+                       (c2 * (su[ii + 2][jj - 2] - u(2, i - 2, j - 2, k)) +
                         c1 * (u(2, i + 1, j - 2, k) - u(2, i - 1, j - 2, k)))) +
               c1 *
                   (mu(i, j + 1, k) * met(1, i, j + 1, k) * met(1, i, j + 1, k) *
