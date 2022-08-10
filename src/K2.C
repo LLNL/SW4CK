@@ -304,14 +304,14 @@ __global__ void K2kernel(int start0, int N0, int start1, int N1, int start2, int
                         c1 * (su[ii + 1][ jj + 2] - su[ii - 1][ jj + 2])) -
                    mu(i, j - 2, k) * met(1, i, j - 2, k) * met(1, i, j - 2, k) *
                        (c2 * (su[ii + 2][jj - 2] - su[ii - 2][ jj - 2]) +
-                        c1 * (u(2, i + 1, j - 2, k) - u(2, i - 1, j - 2, k)))) +
+                        c1 * (su[ii + 1][ jj - 2] - su[ii - 1][ jj - 2]))) +
               c1 *
                   (mu(i, j + 1, k) * met(1, i, j + 1, k) * met(1, i, j + 1, k) *
-                       (c2 * (u(2, i + 2, j + 1, k) - u(2, i - 2, j + 1, k)) +
-                        c1 * (u(2, i + 1, j + 1, k) - u(2, i - 1, j + 1, k))) -
+                       (c2 * (su[ii + 2][ jj + 1] - su[ii - 2][ jj + 1]) +
+                        c1 * (su[ii + 1][jj + 1] - su[ii - 1][jj + 1])) -
                    mu(i, j - 1, k) * met(1, i, j - 1, k) * met(1, i, j - 1, k) *
-                       (c2 * (u(2, i + 2, j - 1, k) - u(2, i - 2, j - 1, k)) +
-                        c1 * (u(2, i + 1, j - 1, k) - u(2, i - 1, j - 1, k))));
+                       (c2 * (su[ii + 2][jj - 1] - su[ii - 2][ jj - 1]) +
+                        c1 * (su[ii + 1][ jj - 1] - su[ii - 1][ jj - 1])));
 
           // qp-derivatives
           // 38 ops, tot=345
