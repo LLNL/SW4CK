@@ -318,8 +318,8 @@ __global__ void K2kernel(int start0, int N0, int start1, int N1, int start2, int
           r1 +=
               c2 *
                   (la(i + 2, j, k) * met(1, i + 2, j, k) * met(1, i + 2, j, k) *
-                       (c2 * (u(2, i + 2, j + 2, k) - u(2, i + 2, j - 2, k)) +
-                        c1 * (u(2, i + 2, j + 1, k) - u(2, i + 2, j - 1, k))) -
+		   (c2 * (su[ii + 2][ jj + 2] - su[ii + 2][jj - 2]) +
+                        c1 * (su[ii + 2][jj + 1] - su[ii + 2][jj - 1])) -
                    la(i - 2, j, k) * met(1, i - 2, j, k) * met(1, i - 2, j, k) *
                        (c2 * (u(2, i - 2, j + 2, k) - u(2, i - 2, j - 2, k)) +
                         c1 * (u(2, i - 2, j + 1, k) - u(2, i - 2, j - 1, k)))) +
