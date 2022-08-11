@@ -305,19 +305,20 @@ return
           mux3 = cof2 + cof5 + 3 * (cof4 + cof3);
           mux4 = cof4 - tf * (cof3 + cof5);
 
+#ifdef DEBUG
 	  int t1= TX2;
 	  int t2 = TY2;
 	  int t3 = TZ2;
-#ifdef DEBUG
+
 	  double diff = u(2, i, j, k)-su[TX2][TY2][TZ2] ;
 	  int bb = blockIdx.x;
 	  if ((diff!=0.0)&&((blockIdx.x+blockIdx.y+blockIdx.z)==0)) printf("COMP %d %d %d -> %d %d %d = %g\n",i,j,k,t1,t2,t3,diff);
 #endif
 
-          r1 += i6 * (mux1 * (u(2, i, j, k - 2) - su[TX2][TY2][TZ2]) +
-                      mux2 * (u(2, i, j, k - 1) - u(2, i, j, k)) +
-                      mux3 * (u(2, i, j, k + 1) - u(2, i, j, k)) +
-                      mux4 * (u(2, i, j, k + 2) - u(2, i, j, k)));
+          r1 += i6 * (mux1 * (su[TX2][TY2][TZ] - su[TX2][TY2][TZ2]) +
+                      mux2 * (su[TX2][TY2][TZ+1] - su[TX2][TY2][TZ2]) +
+                      mux3 * (su[TX2][TY2][TZ2+1] - su[TX2][TY2][TZ2]) +
+                      mux4 * (su[TX2][TY2][TZ2+2] - su[TX2][TY2][TZ2]));
 
           // rr derivative (w)
           // 43 ops, tot=269
