@@ -370,15 +370,15 @@ return
                        (c2 * (su[TX2+2][TY2+2][TZ2] - su[TX2+2][TY][TZ2]) +
 	      c1 * (su[TX2+2][TY2+1][TZ2] - su[TX2+2][TY+1][TZ2])) - // Time jumped from 1.89 to 2.33 with the 2nd convertion in this line
                    la(i - 2, j, k) * met(1, i - 2, j, k) * met(1, i - 2, j, k) *
-                       (c2 * (u(2, i - 2, j + 2, k) - u(2, i - 2, j - 2, k)) +
-                        c1 * (u(2, i - 2, j + 1, k) - u(2, i - 2, j - 1, k)))) +
+                       (c2 * (su[TX][TY2+2][TZ2] - su[TX][TY][TZ2]) +
+                        c1 * (su[TX][TY2+1][TZ2] - su[TX][TY+1][TZ2]))) +
               c1 *
                   (la(i + 1, j, k) * met(1, i + 1, j, k) * met(1, i + 1, j, k) *
-                       (c2 * (u(2, i + 1, j + 2, k) - u(2, i + 1, j - 2, k)) +
-                        c1 * (u(2, i + 1, j + 1, k) - u(2, i + 1, j - 1, k))) -
+                       (c2 * (su[TX2+1][TY2+2][TZ2] - su[TX2+1][TY][TZ2]) +
+                        c1 * (su[TX2+1][TY2+1][TZ2] - su[TX2+1][TY+1][TZ2])) -
                    la(i - 1, j, k) * met(1, i - 1, j, k) * met(1, i - 1, j, k) *
-                       (c2 * (u(2, i - 1, j + 2, k) - u(2, i - 1, j - 2, k)) +
-                        c1 * (u(2, i - 1, j + 1, k) - u(2, i - 1, j - 1, k))));
+		   (c2 * (su[TX+1][TY2+2][TZ2] - su[TX+1][TY][TZ2]) +
+                        c1 * (su[TX+1][TY2+1][TZ2] - su[TX+1][TY+1][TZ2])));
 
           // pr-derivatives
           // 130 ops., tot=475
