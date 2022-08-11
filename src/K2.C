@@ -516,8 +516,8 @@ return
                         c1 * (u(1, i, j + 1, k + 2) - u(1, i, j - 1, k + 2))) *
                        stry(j) * istrx +
                    la(i, j, k + 2) * met(2, i, j, k + 2) * met(1, i, j, k + 2) *
-                       (c2 * (u(2, i, j + 2, k + 2) - u(2, i, j - 2, k + 2)) +
-                        c1 * (u(2, i, j + 1, k + 2) - u(2, i, j - 1, k + 2))) -
+                       (c2 * (su[TX2][TY2+2][TZ2+2] - su[TX2][TY][TZ2+2]) +
+                        c1 * (su[TX2][TY2+1][TZ2+2] - su[TX2][TY+1][TZ2+2])) -
                    (mu(i, j, k - 2) * met(3, i, j, k - 2) *
                         met(1, i, j, k - 2) *
                         (c2 * (u(1, i, j + 2, k - 2) - u(1, i, j - 2, k - 2)) +
@@ -525,17 +525,17 @@ return
                         stry(j) * istrx +
                     la(i, j, k - 2) * met(2, i, j, k - 2) *
                         met(1, i, j, k - 2) *
-                        (c2 * (u(2, i, j + 2, k - 2) - u(2, i, j - 2, k - 2)) +
-                         c1 * (u(2, i, j + 1, k - 2) -
-                               u(2, i, j - 1, k - 2))))) +
+                        (c2 * (su[TX2][TY2+2][TZ] - su[TX2][TY][TZ]) +
+                         c1 * (su[TX2][TY2+1][TZ] -
+                               su[TX2][TY+1][TZ])))) +
               c1 *
                   (mu(i, j, k + 1) * met(3, i, j, k + 1) * met(1, i, j, k + 1) *
                        (c2 * (u(1, i, j + 2, k + 1) - u(1, i, j - 2, k + 1)) +
                         c1 * (u(1, i, j + 1, k + 1) - u(1, i, j - 1, k + 1))) *
                        stry(j) * istrx +
                    la(i, j, k + 1) * met(2, i, j, k + 1) * met(1, i, j, k + 1) *
-                       (c2 * (u(2, i, j + 2, k + 1) - u(2, i, j - 2, k + 1)) +
-                        c1 * (u(2, i, j + 1, k + 1) - u(2, i, j - 1, k + 1))) -
+                       (c2 * (su[TX2][TY2+2][TZ2+1] - su[TX2][TY][TZ2+1]) +
+                        c1 * (su[TX2][TY2+1][TZ2+1] - su[TX2][TY+1][TZ2+1])) -
                    (mu(i, j, k - 1) * met(3, i, j, k - 1) *
                         met(1, i, j, k - 1) *
                         (c2 * (u(1, i, j + 2, k - 1) - u(1, i, j - 2, k - 1)) +
@@ -543,9 +543,9 @@ return
                         stry(j) * istrx +
                     la(i, j, k - 1) * met(2, i, j, k - 1) *
                         met(1, i, j, k - 1) *
-                        (c2 * (u(2, i, j + 2, k - 1) - u(2, i, j - 2, k - 1)) +
+                        (c2 * (su[TX2][TY2+2][TZ+1]- su[TX2][TY][TZ+1]) +
                          c1 *
-                             (u(2, i, j + 1, k - 1) - u(2, i, j - 1, k - 1)))));
+                             (su[TX2][TY2+1][TZ+1] - su[TX2][TY+1][TZ+1]))));
 
           // rq derivatives
           // 82 ops, tot=769
