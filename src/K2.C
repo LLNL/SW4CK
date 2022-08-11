@@ -95,90 +95,10 @@ return
 #endif
   
   __syncthreads();
-  // Use GS loops to pfill the shared array
-  // for (int ii = start0-2 + threadIdx.x + blockIdx.x * blockDim.x; ii < N0+2;
-  //      ii += blockDim.x * gridDim.x){
-  //   for (int jj = start1-2+ threadIdx.y + blockIdx.y * blockDim.y; jj < N1+2;
-  //        j += blockDim.y * gridDim.y){
-  //     for (int kk = start2-2 + threadIdx.z + blockIdx.z * blockDim.z; kk < N2+2;
-  //          kk += blockDim.z * gridDim.z){
-  // 	su[TX][TY][TZ]=u(2,ii+blockIdx.x*2,jj+blockIdx.y*2,kk+blockIdx.z*2);
-  // 	for (int l=0;l<4;l++) for (int m=0;m<4;m++) for(int n=0;n<4;n++)
-  //     }
-  //   }
-  // }
-
 
   if ((i < N0) && (j < N1) && (k < N2)) {
 
-#ifdef OLDE_WAY
-    su[TX2][TY2][TZ2]=u(2,i,j,k);
 
-      if (TX==0){
-	su[TX][TY2][TZ2]=u(2,i-2,j,k);
-	su[TX+1][TY2][TZ2]=u(2,i-1,j,k);
-	if (threadIdx.y==0){
-	  su[threadIdx.x][threadIdx.y][TZ2]=u(2,i-2,j-2,k);
-	  su[threadIdx.x][threadIdx.y+1][TZ2]=u(2,i-2,j-1,k);
-	  su[threadIdx.x+1][threadIdx.y][TZ2]=u(2,i-1,j-2,k);
-	  su[threadIdx.x+1][threadIdx.y+1][TZ2]=u(2,i-1,j-1,k);
-	  if (TZ==0){
-	    su[threadIdx.x][threadIdx.y][TZ]=u(2,i-2,j-2,k-2);
-	    su[threadIdx.x][threadIdx.y+1][TZ]=u(2,i-2,j-1,k-2);
-	    su[threadIdx.x+1][threadIdx.y][TZ]=u(2,i-1,j-2,k-2);
-	    su[threadIdx.x+1][threadIdx.y+1][TZ]=u(2,i-1,j-1,k-2);
-
-	    su[threadIdx.x][threadIdx.y][TZ+1]=u(2,i-2,j-2,k-1);
-	    su[threadIdx.x][threadIdx.y+1][TZ+1]=u(2,i-2,j-1,k-1);
-	    su[threadIdx.x+1][threadIdx.y][TZ+1]=u(2,i-1,j-2,k-1);
-	    su[threadIdx.x+1][threadIdx.y+1][TZ+1]=u(2,i-1,j-1,k-1);
-	  }
-	}
-      }
-      
-      if (threadIdx.x==(NX-1)){
-	su[threadIdx.x+3][threadIdx.y+2][TZ2]=u(2,i+1,j,k);
-	su[threadIdx.x+4][threadIdx.y+2][TZ2]=u(2,i+2,j,k);
-	if (threadIdx.y==(NY-1)){
-	  su[threadIdx.x+3][threadIdx.y+3][TZ2]=u(2,i+1,j+1,k);
-	  su[threadIdx.x+4][threadIdx.y+4][TZ2]=u(2,i+2,j+2,k);
-	  su[threadIdx.x+3][threadIdx.y+4][TZ2]=u(2,i+1,j+2,k);
-	  su[threadIdx.x+4][threadIdx.y+3][TZ2]=u(2,i+2,j+1,k);
-	  if (threadIdx.z==(NZ-1)){
-	    su[threadIdx.x+3][threadIdx.y+3][TZ]=u(2,i+1,j+1,k-2);
-	    su[threadIdx.x+4][threadIdx.y+4][TZ]=u(2,i+2,j+2,k-2);
-	    su[threadIdx.x+3][threadIdx.y+4][TZ]=u(2,i+1,j+2,k-2);
-	    su[threadIdx.x+4][threadIdx.y+3][TZ]=u(2,i+2,j+1,k-2);
-
-	    su[threadIdx.x+3][threadIdx.y+3][TZ+1]=u(2,i+1,j+1,k-1);
-	    su[threadIdx.x+4][threadIdx.y+4][TZ+1]=u(2,i+2,j+2,k-1);
-	    su[threadIdx.x+3][threadIdx.y+4][TZ+1]=u(2,i+1,j+2,k-1);
-	    su[threadIdx.x+4][threadIdx.y+3][TZ+1]=u(2,i+2,j+1,k-1);
-	  }
-	}
-      }
-      
-      if (threadIdx.y==0){
-	su[threadIdx.x+2][threadIdx.y][TZ2]=  u(2,i,j-2,k);
-	su[threadIdx.x+2][threadIdx.y+1][TZ2]=u(2,i,j-1,k);
-	if (threadIdx.x==(NX-1)){
-	  su[threadIdx.x+4][threadIdx.y][TZ2]=u(2,i+2,j-2,k);
-	  su[threadIdx.x+3][threadIdx.y+1][TZ2] = u(2,i+1,j-1,k);
-	  su[threadIdx.x+3][threadIdx.y][TZ2]=u(2,i+1,j-2,k);
-	  su[threadIdx.x+4][threadIdx.y+1][TZ2] = u(2,i+2,j-1,k);
-	}
-      }
-      if (threadIdx.y==15){
-	su[threadIdx.x+2][threadIdx.y+3]=u(2,i,j+1,k);
-	su[threadIdx.x+2][threadIdx.y+4]=u(2,i,j+2,k);
-	if (threadIdx.x==0){
-	  su[threadIdx.x][threadIdx.y+4]=u(2,i-2,j+2,k);
-	  su[threadIdx.x+1][threadIdx.y+3]=u(2,i-1,j+1,k);
-	  su[threadIdx.x+1][threadIdx.y+4]=u(2,i-1,j+2,k);
-	  su[threadIdx.x][threadIdx.y+3]=u(2,i-2,j+1,k);
-	}
-      }
-#endif
   
   // #pragma ivdep
           // 	 for( int i=ifirst+2; i <= ilast-2 ; i++ )
