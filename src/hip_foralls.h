@@ -100,6 +100,7 @@ class Range {
     invalid = false;
     if (blocks <= 0) invalid = true;
   };
+  static const int value=N;
   int start;
   int end;
   int blocks;

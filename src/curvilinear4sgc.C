@@ -26,13 +26,14 @@ __device__ __forceinline__ void store(const T value, T& ref) {
 #ifndef NO_RAJA
 #include "RAJA/RAJA.hpp"
 #endif
+#include "K2.h"
 
-__global__ void K2kernel(int start0, int N0, int start1, int N1, int start2, int N2,
-			 float_sw4* __restrict__ a_u, float_sw4* a_mu,
-			 float_sw4* __restrict__ a_lambda, float_sw4* __restrict__ a_met,
-			 float_sw4* __restrict__ a_jac,float_sw4* __restrict__ a_lu,
-			 float_sw4* __restrict__ a_strx, float_sw4* __restrict__ a_stry,
-			 int ifrst,int ilast,int jfirst,int jlast,int kfirst, int klast,float_sw4 a1, float_sw4 sgn);
+// __global__ void K2kernel(int start0, int N0, int start1, int N1, int start2, int N2,
+// 			 const float_sw4* const __restrict__ a_u, float_sw4* a_mu,
+// 			 float_sw4* __restrict__ a_lambda, float_sw4* __restrict__ a_met,
+// 			 float_sw4* __restrict__ a_jac,float_sw4* __restrict__ a_lu,
+// 			 float_sw4* __restrict__ a_strx, float_sw4* __restrict__ a_stry,
+// 			 int ifrst,int ilast,int jfirst,int jlast,int kfirst, int klast,float_sw4 a1, float_sw4 sgn);
 
 void curvilinear4sgX1_ci(
     int ifirst, int ilast, int jfirst, int jlast, int kfirst, int klast,
@@ -872,14 +873,14 @@ Range<64> IK(ifirst + 2, ilast - 1);  // 16.861ms for 64,2,2
 	  dim3 blocks(IK.blocks,JK.blocks,KK.blocks);
 	  insertEvent(start1);
 #ifdef ENABLE_HIP
-	  hipLaunchKernelGGL(K2kernel, blocks, tpb, 0, 0,
+	  hipLaunchKernelGGL((K2kernel<IK.value,JK.value,KK.value>), blocks, tpb, 0, 0,
                         IK.start, IK.end, JK.start, JK.end,
                         KK.start, KK.end,
 			     a_u,a_mu,a_lambda,a_met,a_jac,a_lu,a_strx,a_stry,
 			     ifirst,ilast,jfirst,jlast,kfirst,klast,a1,sgn);
 #endif
 #ifdef ENABLE_CUDA
-	  K2kernel<<<blocks,tpb>>>(IK.start, IK.end, JK.start, JK.end,
+	  K2kernel<IK.value,JK.value,KK.value><<<blocks,tpb>>>(IK.start, IK.end, JK.start, JK.end,
                         KK.start, KK.end,
 			     a_u,a_mu,a_lambda,a_met,a_jac,a_lu,a_strx,a_stry,
 			     ifirst,ilast,jfirst,jlast,kfirst,klast,a1,sgn);

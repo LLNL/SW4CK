@@ -13,7 +13,7 @@ endif
 # sw4 main program (kept separate)
 OBJSW4 = 
 
-OBJ  = curvitest.o curvilinear4sgc.o Events.o K2.o
+OBJ  = curvitest.o curvilinear4sgc.o Events.o
 
 
 # prefix object files with build directory

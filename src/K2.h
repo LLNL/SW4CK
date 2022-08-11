@@ -4,11 +4,12 @@
 #include "hip/hip_runtime_api.h"
 #endif
 #define float_sw4 double
+template<int NX, int NY,int NZ>
 #ifdef ENABLE_HIP
 __launch_bounds__(256,2) 
 #endif
 __global__ void K2kernel(int start0, int N0, int start1, int N1, int start2, int N2,
-			 float_sw4* __restrict__ a_u, float_sw4* __restrict__ a_mu,
+			 const float_sw4* const __restrict__ a_u, float_sw4* __restrict__ a_mu,
 			 float_sw4* __restrict__ a_lambda, float_sw4* __restrict__ a_met,
 			 float_sw4* __restrict__ a_jac,float_sw4* __restrict__ a_lu,
 			 float_sw4* __restrict__ a_strx, float_sw4* __restrict__ a_stry,
@@ -38,9 +39,9 @@ __global__ void K2kernel(int start0, int N0, int start1, int N1, int start2, int
 #define stry(j) a_stry[j - jfirst0]
   
 
-  int i = start0 + threadIdx.x + blockIdx.x * blockDim.x;
-  int j = start1 + threadIdx.y + blockIdx.y * blockDim.y;
-  int k = start2 + threadIdx.z + blockIdx.z * blockDim.z;
+  const int i = start0 + threadIdx.x + blockIdx.x * blockDim.x;
+  const int j = start1 + threadIdx.y + blockIdx.y * blockDim.y;
+  const int k = start2 + threadIdx.z + blockIdx.z * blockDim.z;
 
   // Check is making these const ints makes a difference
 #define TX threadIdx.x
@@ -51,9 +52,9 @@ __global__ void K2kernel(int start0, int N0, int start1, int N1, int start2, int
 #define TY2 (threadIdx.y+2)
 #define TZ2 (threadIdx.z+2)
 
-#define NX 64
-#define NY 2
-#define NZ 2
+  //define NX 64
+    //#define NY 2
+  //#define NZ 2
 
   __shared__ float_sw4 su[NX+4][NY+4][NZ+4];
 
