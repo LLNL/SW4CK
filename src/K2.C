@@ -430,8 +430,8 @@ return
                         strx(i) * istry +
                     mu(i, j, k - 1) * met(3, i, j, k - 1) *
                         met(1, i, j, k - 1) *
-                        (c2 * (u(2, i + 2, j, k - 1) - u(2, i - 2, j, k - 1)) +
-                         c1 * (u(2, i + 1, j, k - 1) - u(2, i - 1, j, k - 1))) +
+                        (c2 * (su[TX2+2][TY2][TZ+1] - su[TX][TY2][TZ+1]) +
+                         c1 * (su[TX2+1][TY2][TZ+1] - su[TX+1][TY2][TZ+1])) +
                     mu(i, j, k - 1) * met(4, i, j, k - 1) *
                         met(1, i, j, k - 1) *
                         (c2 * (u(3, i + 2, j, k - 1) - u(3, i - 2, j, k - 1)) +
