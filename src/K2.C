@@ -42,44 +42,127 @@ __global__ void K2kernel(int start0, int N0, int start1, int N1, int start2, int
   int j = start1 + threadIdx.y + blockIdx.y * blockDim.y;
   int k = start2 + threadIdx.z + blockIdx.z * blockDim.z;
 
+  // Check is making these const ints makes a difference
+#define TX threadIdx.x
+#define TY threadIdx.y
+#define TZ threadIdx.z
+
+#define TX2 (threadIdx.x+2)
+#define TY2 (threadIdx.y+2)
+#define TZ2 (threadIdx.z+2)
 
 #define NX 64
 #define NY 2
 #define NZ 2
 
   __shared__ float_sw4 su[NX+4][NY+4][NZ+4];
+
+  // Block stride loops ?
+#ifdef TEST_METHOD
+  if (i>(N0+3)) return
+  int ic=0;
+  if (((blockIdx.y+blockIdx.z+threadIdx.y + threadIdx.z)==0)&&(blockIdx.x==gridDim.x-1)){
+    int tid=TX;
+    int b = blockIdx.x;
+    int bd=blockDim.x;
+    for(int ii=-2+TX;ii<NX+2;ii+=blockDim.x){
+      int I=start0 + threadIdx.x + (blockIdx.x+ic)* blockDim.x-2;
+      if (I<(N0+2)) printf("DUMP %d %d(%d) -> TID = %d I = %d END = %d\n",b,ii,ic,tid,I,N0);
+      ic=ic+1;
+    }
+}
+#endif
+  int ic=0;
+  for(int ii=-2+TX;ii<NX+2;ii+=NX){
+    int I=start0 + threadIdx.x + (blockIdx.x+ic)* blockDim.x-2;
+    int jc=0;
+    for (int jj=-2+TY;jj<NY+2;jj+=NY){
+      int J=start1+threadIdx.y + (blockIdx.y+jc)* blockDim.y-2;
+      int kc=0;
+      for(int kk=-2+TZ;kk<NZ+2;kk+=NZ){
+	int K=start2+threadIdx.z + (blockIdx.z+kc)* blockDim.z-2;
+	kc++;
+	if ((I>(N0+1))||(J>(N1+1))||(K>(N2+1))) continue;
+	su[ii][jj][kk]=u(2,I,J,K);
+
+      }
+      jc++;
+    }
+    ic++;
+  }
+  
+  __syncthreads();
+  // Use GS loops to pfill the shared array
+  // for (int ii = start0-2 + threadIdx.x + blockIdx.x * blockDim.x; ii < N0+2;
+  //      ii += blockDim.x * gridDim.x){
+  //   for (int jj = start1-2+ threadIdx.y + blockIdx.y * blockDim.y; jj < N1+2;
+  //        j += blockDim.y * gridDim.y){
+  //     for (int kk = start2-2 + threadIdx.z + blockIdx.z * blockDim.z; kk < N2+2;
+  //          kk += blockDim.z * gridDim.z){
+  // 	su[TX][TY][TZ]=u(2,ii+blockIdx.x*2,jj+blockIdx.y*2,kk+blockIdx.z*2);
+  // 	for (int l=0;l<4;l++) for (int m=0;m<4;m++) for(int n=0;n<4;n++)
+  //     }
+  //   }
+  // }
+
+
   if ((i < N0) && (j < N1) && (k < N2)) {
 
-    su[threadIdx.x+2][threadIdx.y+2][threadIdx.z+2]=u(2,i,j,k);
+#ifdef OLDE_WAY
+    su[TX2][TY2][TZ2]=u(2,i,j,k);
 
-      if (threadIdx.x==0){
-	su[threadIdx.x][threadIdx.y+2][threadIdx.z+2]=u(2,i-2,j,k);
-	su[threadIdx.x+1][threadIdx.y+2][threadIdx.z+2]=u(2,i-1,j,k);
+      if (TX==0){
+	su[TX][TY2][TZ2]=u(2,i-2,j,k);
+	su[TX+1][TY2][TZ2]=u(2,i-1,j,k);
 	if (threadIdx.y==0){
-	  su[threadIdx.x][threadIdx.y]=u(2,i-2,j-2,k);
-	  su[threadIdx.x][threadIdx.y+1]=u(2,i-2,j-1,k);
-	  su[threadIdx.x+1][threadIdx.y]=u(2,i-1,j-2,k);
-	  su[threadIdx.x+1][threadIdx.y+1]=u(2,i-1,j-1,k);
+	  su[threadIdx.x][threadIdx.y][TZ2]=u(2,i-2,j-2,k);
+	  su[threadIdx.x][threadIdx.y+1][TZ2]=u(2,i-2,j-1,k);
+	  su[threadIdx.x+1][threadIdx.y][TZ2]=u(2,i-1,j-2,k);
+	  su[threadIdx.x+1][threadIdx.y+1][TZ2]=u(2,i-1,j-1,k);
+	  if (TZ==0){
+	    su[threadIdx.x][threadIdx.y][TZ]=u(2,i-2,j-2,k-2);
+	    su[threadIdx.x][threadIdx.y+1][TZ]=u(2,i-2,j-1,k-2);
+	    su[threadIdx.x+1][threadIdx.y][TZ]=u(2,i-1,j-2,k-2);
+	    su[threadIdx.x+1][threadIdx.y+1][TZ]=u(2,i-1,j-1,k-2);
+
+	    su[threadIdx.x][threadIdx.y][TZ+1]=u(2,i-2,j-2,k-1);
+	    su[threadIdx.x][threadIdx.y+1][TZ+1]=u(2,i-2,j-1,k-1);
+	    su[threadIdx.x+1][threadIdx.y][TZ+1]=u(2,i-1,j-2,k-1);
+	    su[threadIdx.x+1][threadIdx.y+1][TZ+1]=u(2,i-1,j-1,k-1);
+	  }
 	}
       }
-      if (threadIdx.x==15){
-	su[threadIdx.x+3][threadIdx.y+2]=u(2,i+1,j,k);
-	su[threadIdx.x+4][threadIdx.y+2]=u(2,i+2,j,k);
-	if (threadIdx.y==15){
-	  su[threadIdx.x+3][threadIdx.y+3]=u(2,i+1,j+1,k);
-	  su[threadIdx.x+4][threadIdx.y+4]=u(2,i+2,j+2,k);
-	  su[threadIdx.x+3][threadIdx.y+4]=u(2,i+1,j+2,k);
-	  su[threadIdx.x+4][threadIdx.y+3]=u(2,i+2,j+1,k);
+      
+      if (threadIdx.x==(NX-1)){
+	su[threadIdx.x+3][threadIdx.y+2][TZ2]=u(2,i+1,j,k);
+	su[threadIdx.x+4][threadIdx.y+2][TZ2]=u(2,i+2,j,k);
+	if (threadIdx.y==(NY-1)){
+	  su[threadIdx.x+3][threadIdx.y+3][TZ2]=u(2,i+1,j+1,k);
+	  su[threadIdx.x+4][threadIdx.y+4][TZ2]=u(2,i+2,j+2,k);
+	  su[threadIdx.x+3][threadIdx.y+4][TZ2]=u(2,i+1,j+2,k);
+	  su[threadIdx.x+4][threadIdx.y+3][TZ2]=u(2,i+2,j+1,k);
+	  if (threadIdx.z==(NZ-1)){
+	    su[threadIdx.x+3][threadIdx.y+3][TZ]=u(2,i+1,j+1,k-2);
+	    su[threadIdx.x+4][threadIdx.y+4][TZ]=u(2,i+2,j+2,k-2);
+	    su[threadIdx.x+3][threadIdx.y+4][TZ]=u(2,i+1,j+2,k-2);
+	    su[threadIdx.x+4][threadIdx.y+3][TZ]=u(2,i+2,j+1,k-2);
+
+	    su[threadIdx.x+3][threadIdx.y+3][TZ+1]=u(2,i+1,j+1,k-1);
+	    su[threadIdx.x+4][threadIdx.y+4][TZ+1]=u(2,i+2,j+2,k-1);
+	    su[threadIdx.x+3][threadIdx.y+4][TZ+1]=u(2,i+1,j+2,k-1);
+	    su[threadIdx.x+4][threadIdx.y+3][TZ+1]=u(2,i+2,j+1,k-1);
+	  }
 	}
       }
+      
       if (threadIdx.y==0){
-	su[threadIdx.x+2][threadIdx.y]=  u(2,i,j-2,k);
-	su[threadIdx.x+2][threadIdx.y+1]=u(2,i,j-1,k);
-	if (threadIdx.x==15){
-	  su[threadIdx.x+4][threadIdx.y]=u(2,i+2,j-2,k);
-	  su[threadIdx.x+3][threadIdx.y+1] = u(2,i+1,j-1,k);
-	  su[threadIdx.x+3][threadIdx.y]=u(2,i+1,j-2,k);
-	  su[threadIdx.x+4][threadIdx.y+1] = u(2,i+2,j-1,k);
+	su[threadIdx.x+2][threadIdx.y][TZ2]=  u(2,i,j-2,k);
+	su[threadIdx.x+2][threadIdx.y+1][TZ2]=u(2,i,j-1,k);
+	if (threadIdx.x==(NX-1)){
+	  su[threadIdx.x+4][threadIdx.y][TZ2]=u(2,i+2,j-2,k);
+	  su[threadIdx.x+3][threadIdx.y+1][TZ2] = u(2,i+1,j-1,k);
+	  su[threadIdx.x+3][threadIdx.y][TZ2]=u(2,i+1,j-2,k);
+	  su[threadIdx.x+4][threadIdx.y+1][TZ2] = u(2,i+2,j-1,k);
 	}
       }
       if (threadIdx.y==15){
@@ -92,6 +175,7 @@ __global__ void K2kernel(int start0, int N0, int start1, int N1, int start2, int
 	  su[threadIdx.x][threadIdx.y+3]=u(2,i-2,j+1,k);
 	}
       }
+#endif
   
   // #pragma ivdep
           // 	 for( int i=ifirst+2; i <= ilast-2 ; i++ )
@@ -218,7 +302,15 @@ __global__ void K2kernel(int start0, int N0, int start1, int N1, int start2, int
           mux3 = cof2 + cof5 + 3 * (cof4 + cof3);
           mux4 = cof4 - tf * (cof3 + cof5);
 
-          r1 += i6 * (mux1 * (u(2, i, j, k - 2) - u(2, i, j, k)) +
+	  int t1= TX2;
+	  int t2 = TY2;
+	  int t3 = TZ2;
+
+	  double diff = u(2, i, j, k)-su[TX2][TY2][TZ2] ;
+	  int b = blockIdx.x;
+	  if ((diff!=0.0)&&((blockIdx.x+blockIdx.y+blockIdx.z)==0)) printf("COMP %d %d %d -> %d %d %d = %g\n",i,j,k,t1,t2,t3,diff);
+
+          r1 += i6 * (mux1 * (u(2, i, j, k - 2) - su[TX2][TY2][TZ2]) +
                       mux2 * (u(2, i, j, k - 1) - u(2, i, j, k)) +
                       mux3 * (u(2, i, j, k + 1) - u(2, i, j, k)) +
                       mux4 * (u(2, i, j, k + 2) - u(2, i, j, k)));
