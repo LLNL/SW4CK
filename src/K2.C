@@ -390,8 +390,8 @@ return
                         c1 * (u(1, i + 1, j, k + 2) - u(1, i - 1, j, k + 2))) *
                        strx(i) * istry +
                    mu(i, j, k + 2) * met(3, i, j, k + 2) * met(1, i, j, k + 2) *
-                       (c2 * (u(2, i + 2, j, k + 2) - u(2, i - 2, j, k + 2)) +
-                        c1 * (u(2, i + 1, j, k + 2) - u(2, i - 1, j, k + 2))) +
+                       (c2 * (su[TX2+2][TY2][TZ2+2] - su[TX][TY2][TZ2+2]) +
+                        c1 * (su[TX2+1][TY2][TZ2+2] - su[TX+1][TY2][TZ2+2])) +
                    mu(i, j, k + 2) * met(4, i, j, k + 2) * met(1, i, j, k + 2) *
                        (c2 * (u(3, i + 2, j, k + 2) - u(3, i - 2, j, k + 2)) +
                         c1 * (u(3, i + 1, j, k + 2) - u(3, i - 1, j, k + 2))) *
