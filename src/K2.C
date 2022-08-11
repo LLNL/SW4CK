@@ -58,28 +58,30 @@ __global__ void K2kernel(int start0, int N0, int start1, int N1, int start2, int
   __shared__ float_sw4 su[NX+4][NY+4][NZ+4];
 
   // Block stride loops ?
+
 #ifdef TEST_METHOD
-  if (i>(N0+3)) return
+  if (i>(N0+3)) return;
   int ic=0;
-  if (((blockIdx.y+blockIdx.z+threadIdx.y + threadIdx.z)==0)&&(blockIdx.x==gridDim.x-1)){
+  if (((blockIdx.y+blockIdx.z+threadIdx.y + threadIdx.z)==0)&&(blockIdx.x==0)){
     int tid=TX;
     int b = blockIdx.x;
-    int bd=blockDim.x;
-    for(int ii=-2+TX;ii<NX+2;ii+=blockDim.x){
+    //int bd=blockDim.x;
+    for(int ii=TX;ii<NX+4;ii+=blockDim.x){
       int I=start0 + threadIdx.x + (blockIdx.x+ic)* blockDim.x-2;
-      if (I<(N0+2)) printf("DUMP %d %d(%d) -> TID = %d I = %d END = %d\n",b,ii,ic,tid,I,N0);
+      if (I<(N0+2)) printf("DUMP %d SARRAY INDEX = %d(%d) -> TID = %d I = %d END = %d\n",b,ii,ic,tid,I,N0);
       ic=ic+1;
     }
 }
-#endif
+return
+#else
   int ic=0;
-  for(int ii=-2+TX;ii<NX+2;ii+=NX){
+  for(int ii=TX;ii<NX+4;ii+=NX){
     int I=start0 + threadIdx.x + (blockIdx.x+ic)* blockDim.x-2;
     int jc=0;
-    for (int jj=-2+TY;jj<NY+2;jj+=NY){
+    for (int jj=TY;jj<NY+4;jj+=NY){
       int J=start1+threadIdx.y + (blockIdx.y+jc)* blockDim.y-2;
       int kc=0;
-      for(int kk=-2+TZ;kk<NZ+2;kk+=NZ){
+      for(int kk=TZ;kk<NZ+4;kk+=NZ){
 	int K=start2+threadIdx.z + (blockIdx.z+kc)* blockDim.z-2;
 	kc++;
 	if ((I>(N0+1))||(J>(N1+1))||(K>(N2+1))) continue;
@@ -90,6 +92,7 @@ __global__ void K2kernel(int start0, int N0, int start1, int N1, int start2, int
     }
     ic++;
   }
+#endif
   
   __syncthreads();
   // Use GS loops to pfill the shared array
@@ -305,10 +308,11 @@ __global__ void K2kernel(int start0, int N0, int start1, int N1, int start2, int
 	  int t1= TX2;
 	  int t2 = TY2;
 	  int t3 = TZ2;
-
+#ifdef DEBUG
 	  double diff = u(2, i, j, k)-su[TX2][TY2][TZ2] ;
-	  int b = blockIdx.x;
+	  int bb = blockIdx.x;
 	  if ((diff!=0.0)&&((blockIdx.x+blockIdx.y+blockIdx.z)==0)) printf("COMP %d %d %d -> %d %d %d = %g\n",i,j,k,t1,t2,t3,diff);
+#endif
 
           r1 += i6 * (mux1 * (u(2, i, j, k - 2) - su[TX2][TY2][TZ2]) +
                       mux2 * (u(2, i, j, k - 1) - u(2, i, j, k)) +
