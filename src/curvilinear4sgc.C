@@ -26,7 +26,7 @@ __device__ __forceinline__ void store(const T value, T& ref) {
 #ifndef NO_RAJA
 #include "RAJA/RAJA.hpp"
 #endif
-#include "K2.h"
+#include "K2_U2_U1.h"
 
 // __global__ void K2kernel(int start0, int N0, int start1, int N1, int start2, int N2,
 // 			 const float_sw4* const __restrict__ a_u, float_sw4* a_mu,

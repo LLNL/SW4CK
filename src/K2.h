@@ -52,12 +52,10 @@ __global__ void K2kernel(int start0, int N0, int start1, int N1, int start2, int
 #define TY2 (threadIdx.y+2)
 #define TZ2 (threadIdx.z+2)
 
-  //define NX 64
-    //#define NY 2
-  //#define NZ 2
+
 
   __shared__ float_sw4 su[NX+4][NY+4][NZ+4];
-
+  //__shared__ float_sw4 su1[NX+4][NY+4][NZ+4];
   // Block stride loops ?
 
 #ifdef TEST_METHOD
@@ -87,7 +85,7 @@ return
 	kc++;
 	if ((I>(N0+1))||(J>(N1+1))||(K>(N2+1))) continue;
 	su[ii][jj][kk]=u(2,I,J,K);
-
+	//su1[ii][jj][kk]=u(1,I,J,K);
       }
       jc++;
     }
@@ -134,7 +132,7 @@ return
           float_sw4 mux4 = cof4 - tf * (cof3 + cof5);
 
           r1 += i6 *
-                (mux1 * (u(1, i - 2, j, k) - u(1, i, j, k)) +
+	    (mux1 * (u(1, i - 2, j, k) - u(1, i, j, k)) +
                  mux2 * (u(1, i - 1, j, k) - u(1, i, j, k)) +
                  mux3 * (u(1, i + 1, j, k) - u(1, i, j, k)) +
                  mux4 * (u(1, i + 2, j, k) - u(1, i, j, k))) *
@@ -142,20 +140,20 @@ return
           // qq derivative (u)
           // 43 ops, tot=101
           {
-            float_sw4 cof1 = (mu(i, j - 2, k)) * met(1, i, j - 2, k) *
+            cof1 = (mu(i, j - 2, k)) * met(1, i, j - 2, k) *
                              met(1, i, j - 2, k) * stry(j - 2);
-            float_sw4 cof2 = (mu(i, j - 1, k)) * met(1, i, j - 1, k) *
+            cof2 = (mu(i, j - 1, k)) * met(1, i, j - 1, k) *
                              met(1, i, j - 1, k) * stry(j - 1);
-            float_sw4 cof3 =
+            cof3 =
                 (mu(i, j, k)) * met(1, i, j, k) * met(1, i, j, k) * stry(j);
-            float_sw4 cof4 = (mu(i, j + 1, k)) * met(1, i, j + 1, k) *
+            cof4 = (mu(i, j + 1, k)) * met(1, i, j + 1, k) *
                              met(1, i, j + 1, k) * stry(j + 1);
-            float_sw4 cof5 = (mu(i, j + 2, k)) * met(1, i, j + 2, k) *
+            cof5 = (mu(i, j + 2, k)) * met(1, i, j + 2, k) *
                              met(1, i, j + 2, k) * stry(j + 2);
-            float_sw4 mux1 = cof2 - tf * (cof3 + cof1);
-            float_sw4 mux2 = cof1 + cof4 + 3 * (cof3 + cof2);
-            float_sw4 mux3 = cof2 + cof5 + 3 * (cof4 + cof3);
-            float_sw4 mux4 = cof4 - tf * (cof3 + cof5);
+            mux1 = cof2 - tf * (cof3 + cof1);
+            mux2 = cof1 + cof4 + 3 * (cof3 + cof2);
+            mux3 = cof2 + cof5 + 3 * (cof4 + cof3);
+            mux4 = cof4 - tf * (cof3 + cof5);
 
             r1 += i6 *
                   (mux1 * (u(1, i, j - 2, k) - u(1, i, j, k)) +
@@ -236,7 +234,7 @@ return
 	  if ((diff!=0.0)&&((blockIdx.x+blockIdx.y+blockIdx.z)==0)) printf("COMP %d %d %d -> %d %d %d = %g\n",i,j,k,t1,t2,t3,diff);
 #endif
 
-          r1 += i6 * (mux1 * (su[TX2][TY2][TZ] - su[TX2][TY2][TZ2]) +
+          float_sw4 r11 = i6 * (mux1 * (su[TX2][TY2][TZ] - su[TX2][TY2][TZ2]) +
                       mux2 * (su[TX2][TY2][TZ+1] - su[TX2][TY2][TZ2]) +
                       mux3 * (su[TX2][TY2][TZ2+1] - su[TX2][TY2][TZ2]) +
                       mux4 * (su[TX2][TY2][TZ2+2] - su[TX2][TY2][TZ2]));
@@ -258,7 +256,7 @@ return
           mux3 = cof2 + cof5 + 3 * (cof4 + cof3);
           mux4 = cof4 - tf * (cof3 + cof5);
 
-          r1 += i6 *
+          float_sw4 r12 = i6 *
                 (mux1 * (u(3, i, j, k - 2) - u(3, i, j, k)) +
                  mux2 * (u(3, i, j, k - 1) - u(3, i, j, k)) +
                  mux3 * (u(3, i, j, k + 1) - u(3, i, j, k)) +
@@ -267,7 +265,7 @@ return
 
           // pq-derivatives
           // 38 ops, tot=307
-          r1 +=
+          float_sw4 r13 =
               c2 *
                   (mu(i, j + 2, k) * met(1, i, j + 2, k) * met(1, i, j + 2, k) *
                        (c2 * (su[TX2+2][TY2+2][TZ2] - su[TX][TY2+2][TZ2]) +
@@ -283,6 +281,7 @@ return
                        (c2 * (su[TX2+2][TY+1][TZ2] - su[TX][TY+1][TZ2]) +
                         c1 * (su[TX2+1][TY+1][TZ2] - su[TX+1][TY+1][TZ2])));
 
+	  r1+=r11+r12+r13;
           // qp-derivatives
           // 38 ops, tot=345
           r1 +=
