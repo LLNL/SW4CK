@@ -449,8 +449,8 @@ return
                         strx(i + 2) +
                     la(i + 2, j, k) * met(3, i + 2, j, k) *
                         met(1, i + 2, j, k) *
-                        (c2 * (u(2, i + 2, j, k + 2) - u(2, i + 2, j, k - 2)) +
-                         c1 * (u(2, i + 2, j, k + 1) - u(2, i + 2, j, k - 1))) *
+                        (c2 * (su[TX2+2][TY2][TZ2+2] - su[TX2+2][TY2][TZ]) +
+                         c1 * (su[TX2+2][TY2][TZ2+1] - su[TX2+2][TY2][TZ+1])) *
                         stry(j) +
                     la(i + 2, j, k) * met(4, i + 2, j, k) *
                         met(1, i + 2, j, k) *
@@ -464,9 +464,9 @@ return
                          strx(i - 2) +
                      la(i - 2, j, k) * met(3, i - 2, j, k) *
                          met(1, i - 2, j, k) *
-                         (c2 * (u(2, i - 2, j, k + 2) - u(2, i - 2, j, k - 2)) +
+                         (c2 * (su[TX][TY2][TZ2+2] - su[TX][TY2][TZ]) +
                           c1 *
-                              (u(2, i - 2, j, k + 1) - u(2, i - 2, j, k - 1))) *
+                              (su[TX][TY2][TZ2+1] - su[TX][TY2][TZ+1])) *
                          stry(j) +
                      la(i - 2, j, k) * met(4, i - 2, j, k) *
                          met(1, i - 2, j, k) *
@@ -481,8 +481,8 @@ return
                         strx(i + 1) +
                     la(i + 1, j, k) * met(3, i + 1, j, k) *
                         met(1, i + 1, j, k) *
-                        (c2 * (u(2, i + 1, j, k + 2) - u(2, i + 1, j, k - 2)) +
-                         c1 * (u(2, i + 1, j, k + 1) - u(2, i + 1, j, k - 1))) *
+                        (c2 * (su[TX2+1][TY2][TZ2+2] - su[TX2+1][TY2][TZ]) +
+                         c1 * (su[TX2+1][TY2][TZ2+1] - su[TX2+1][TY2][TZ+1])) *
                         stry(j) +
                     la(i + 1, j, k) * met(4, i + 1, j, k) *
                         met(1, i + 1, j, k) *
@@ -496,9 +496,9 @@ return
                          strx(i - 1) +
                      la(i - 1, j, k) * met(3, i - 1, j, k) *
                          met(1, i - 1, j, k) *
-                         (c2 * (u(2, i - 1, j, k + 2) - u(2, i - 1, j, k - 2)) +
+                         (c2 * (su[TX+1][TY2][TZ2+2] - su[TX+1][TY2][TZ]) +
                           c1 *
-                              (u(2, i - 1, j, k + 1) - u(2, i - 1, j, k - 1))) *
+                              (su[TX+1][TY2][TZ2+1] - su[TX+1][TY2][TZ+1])) *
                          stry(j) +
                      la(i - 1, j, k) * met(4, i - 1, j, k) *
                          met(1, i - 1, j, k) *
