@@ -1,0 +1,1 @@
+srun -n 1 rocprof -i roofline.txt --timestamp on ./sw4ck ./sw4ck.in
