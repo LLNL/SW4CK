@@ -146,7 +146,8 @@ std::tuple<double,double> Sarray::minmax(){
 
 void curvilinear4sg_ci(
     int ifirst, int ilast, int jfirst, int jlast, int kfirst, int klast,
-    float_sw4* __restrict__ a_u, float_sw4* __restrict__ a_mu,
+    float_sw4* __restrict__ a_u1, float_sw4* __restrict__ a_u2, float_sw4* __restrict__ a_u3, 
+    float_sw4* __restrict__ a_mu,
     float_sw4* __restrict__ a_lambda, float_sw4* __restrict__ a_met,
     float_sw4* __restrict__ a_jac, float_sw4* __restrict__ a_lu, int* onesided,
     float_sw4* __restrict__ a_acof, float_sw4* __restrict__ a_bope,
@@ -274,9 +275,26 @@ int main(int argc, char* argv[]) {
 #endif
     std::cout << "Launching sw4 kernels\n\n" << std::flush;
     auto start = std::chrono::high_resolution_clock::now();
+   
+    const int ifirst = optr[6];
+    const int ilast = optr[7];
+    const int jfirst = optr[8];
+    const int jlast = optr[9];
+    const int kfirst = optr[10];
+    const int klast = optr[11];
+    
+    const int ni = ilast - ifirst + 1;
+    const int nij = ni * (jlast - jfirst + 1);
+    const int nijk = nij * (klast - kfirst + 1);
+    const int base = -(ifirst + ni * jfirst + nij * kfirst);
+    const int base3 = base - nijk;
+    const int base4 = base - nijk;
+    const int ifirst0 = ifirst;
+    const int jfirst0 = jfirst;
     for (int p = 0; p < 1; p++)
       curvilinear4sg_ci(optr[6], optr[7], optr[8], optr[9], optr[10], optr[11],
-                        alpha_ptr, mua_ptr, lambdaa_ptr, met_ptr, jac_ptr,
+                        alpha_ptr+base3+nijk,alpha_ptr+base3+2*nijk,alpha_ptr+base3+3*nijk,
+			mua_ptr, lambdaa_ptr, met_ptr, jac_ptr,
                         uacc_ptr, onesided_ptr, m_acof_no_gp, m_bope,
                         m_ghcof_no_gp, m_acof_no_gp, m_ghcof_no_gp, m_sg_str_x,
                         m_sg_str_y, nkg, op);
