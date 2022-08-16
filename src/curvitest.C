@@ -288,9 +288,9 @@ int main(int argc, char* argv[]) {
     const int nijk = nij * (klast - kfirst + 1);
     const int base = -(ifirst + ni * jfirst + nij * kfirst);
     const int base3 = base - nijk;
-    const int base4 = base - nijk;
-    const int ifirst0 = ifirst;
-    const int jfirst0 = jfirst;
+    //const int base4 = base - nijk;
+    //const int ifirst0 = ifirst;
+    //const int jfirst0 = jfirst;
     for (int p = 0; p < 1; p++)
       curvilinear4sg_ci(optr[6], optr[7], optr[8], optr[9], optr[10], optr[11],
                         alpha_ptr+base3+nijk,alpha_ptr+base3+2*nijk,alpha_ptr+base3+3*nijk,

@@ -1,6 +1,9 @@
 SW4CK(SW4 Curvilinear Kernels) consists of 5 stencil evaluation kernels that account for
 ~50% of the solution time in [**SW4**](https://github.com/geodynamics/sw4).
 
+This branch(main_int_reduce_sync) of main, replaces the 4D U array with 3 3D arrays.
+This reduces the number of address calculations as seen in a signnificatn drop in int 32
+operation. K2-K5 are faster but K1 is slower. Total kernel time remains the same.
 Documentation
 ----------------
 
