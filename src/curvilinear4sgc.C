@@ -946,6 +946,9 @@ void curvilinear4sg_ci(
                    mux4 * (u(1, i, j + 2, k) - u(1, i, j, k))) *
                   istrx;
           }
+#ifdef MAGIC_SYNC
+	__syncthreads();
+#endif
           // rr derivative (u)
           // 5*11+14+14=83 ops, tot=184
           {

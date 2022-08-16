@@ -295,7 +295,7 @@ CheckDeviceError(cudaStreamSynchronize(0));
     hipFree(ptr);
 #endif
     auto stop = std::chrono::high_resolution_clock::now();
-    std::cout<<"\nTotal kernel runtime = "<<std::chrono::duration_cast<std::chrono::milliseconds>(stop-start).count()<<" milliseconds\n\n";
+    std::cout<<"\nTotal kernel runtime = "<<std::chrono::duration_cast<std::chrono::milliseconds>(stop-start).count()<<" milliseconds ("<<std::chrono::duration_cast<std::chrono::microseconds>(stop-start).count()<<" us ) \n\n";
     auto  minmax =arrays[i]["a_Uacc"]->minmax();
     std::cout << "MIN = " << std::defaultfloat << std::setprecision(20)
               << std::get<0>(minmax)<<"\nMAX = "<<std::get<1>(minmax)  << "\n\n";
