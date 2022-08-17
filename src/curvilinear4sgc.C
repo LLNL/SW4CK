@@ -959,6 +959,7 @@ void curvilinear4sg_ci(
                    mux4 * (u1( i, j + 2, k) - u1( i, j, k))) *
                   istrx;
           }
+
           // rr derivative (u)
           // 5*11+14+14=83 ops, tot=184
           {
@@ -1899,17 +1900,22 @@ void curvilinear4sg_ci(
             mux3 = cof2 + cof5 + 3 * (cof4 + cof3);
             mux4 = cof4 - tf * (cof3 + cof5);
 
+#ifdef MAGIC_SYNC
+	    //	  __syncthreads();
+#endif
+
             r3 +=
                 i6 *
                     (mux1 * (u3( i, j, k - 2) - u3( i, j, k)) +
                      mux2 * (u3( i, j, k - 1) - u3( i, j, k)) +
                      mux3 * (u3( i, j, k + 1) - u3( i, j, k)) +
                      mux4 * (u3( i, j, k + 2) - u3( i, j, k))) *
-                    istrxy
+	      istrxy;
+
                 // pr-derivatives
                 // 86 ops, tot=1878
                 // r1 +=
-                +
+                r3+=
                 c2 *
                     ((la(i, j, k + 2)) * met4( i, j, k + 2) *
                          met1( i, j, k + 2) *
@@ -1936,8 +1942,9 @@ void curvilinear4sg_ci(
                                (u3( i + 2, j, k - 2) - u3( i - 2, j, k - 2)) +
                            c1 * (u3( i + 1, j, k - 2) -
                                  u3( i - 1, j, k - 2))) *
-                          strx(i) * istry)) +
-                c1 *
+	      strx(i) * istry));
+
+                r3+=c1 *
                     ((la(i, j, k + 1)) * met4( i, j, k + 1) *
                          met1( i, j, k + 1) *
                          (c2 * (u1( i + 2, j, k + 1) - u1( i - 2, j, k + 1)) +
@@ -1963,11 +1970,11 @@ void curvilinear4sg_ci(
                                (u3( i + 2, j, k - 1) - u3( i - 2, j, k - 1)) +
                            c1 * (u3( i + 1, j, k - 1) -
                                  u3( i - 1, j, k - 1))) *
-                          strx(i) * istry))
+	      strx(i) * istry))+
                 // rp derivatives
                 // 79 ops, tot=1957
                 //   r1 +=
-                + istry * (c2 * ((mu(i + 2, j, k)) * met4( i + 2, j, k) *
+                istry * (c2 * ((mu(i + 2, j, k)) * met4( i + 2, j, k) *
                                      met1( i + 2, j, k) *
                                      (c2 * (u1( i + 2, j, k + 2) -
                                             u1( i + 2, j, k - 2)) +
@@ -2018,11 +2025,11 @@ void curvilinear4sg_ci(
                                              u3( i - 1, j, k - 2)) +
                                        c1 * (u3( i - 1, j, k + 1) -
                                              u3( i - 1, j, k - 1))) *
-                                      strx(i - 1))))
+	      strx(i - 1))));
                 // qr derivatives
                 // 86 ops, tot=2043
                 //     r1 +=
-                +
+                r3+=
                 c2 *
                     (mu(i, j, k + 2) * met3( i, j, k + 2) *
                          met1( i, j, k + 2) *
@@ -2076,11 +2083,11 @@ void curvilinear4sg_ci(
                                (u2( i, j + 2, k - 1) - u2( i, j - 2, k - 1)) +
                            c1 * (u2( i, j + 1, k - 1) -
                                  u2( i, j - 1, k - 1))) *
-                          istrx))
+	      istrx));
                 // rq derivatives
                 //  79 ops, tot=2122
                 //  r1 +=
-                + istrx * (c2 * (mu(i, j + 2, k) * met3( i, j + 2, k) *
+                r3+= istrx * (c2 * (mu(i, j + 2, k) * met3( i, j + 2, k) *
                                      met1( i, j + 2, k) *
                                      (c2 * (u3( i, j + 2, k + 2) -
                                             u3( i, j + 2, k - 2)) +
