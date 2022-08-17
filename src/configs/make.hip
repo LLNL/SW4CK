@@ -24,3 +24,6 @@ EXTRA_LINK_FLAGS = -L $(RAJA_LOCATION)/lib $(GCC_LINK_LINE)
 ifeq ($(amd_unroll_fix),yes)
 MORE_FLAGS+=  -DAMD_UNROLL_FIX=1
 endif
+ifeq ($(magic_sync),yes)
+MORE_FLAGS+=  -DMAGIC_SYNC=1
+endif

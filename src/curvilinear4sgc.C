@@ -370,7 +370,9 @@ void curvilinear4sg_ci(
             // 54*8*8+25*8 = 3656 ops, tot=3939
             float_sw4 mucofu2, mucofuv, mucofuw, mucofvw, mucofv2, mucofw2;
             //#pragma unroll 1 // slowdown due to register spills
+#ifdef MAGIC_SYNC
 	    __syncthreads();
+#endif
             for (int q = 1; q <= 8; q++) {
               mucofu2 = 0;
               mucofuv = 0;
@@ -418,7 +420,9 @@ void curvilinear4sg_ci(
                     istrx * mucofvw * u2( i, j, q) +
                     istrxy * mucofw2 * u3( i, j, q);
             }
-
+#ifdef MAGIC_SYNC
+	    __syncthreads();
+#endif
             // Ghost point values, only nonzero for k=1.
             // 72 ops., tot=4011
             mucofu2 =
@@ -2346,7 +2350,9 @@ void curvilinear4sg_ci(
           // 54*8*8+25*8 = 3656 ops, tot=3939
           float_sw4 mucofu2, mucofuv, mucofuw, mucofvw, mucofv2, mucofw2;
           //#pragma unroll 8
-	  __syncthreads();
+#ifdef MAGIC_SYNC
+	    __syncthreads();
+#endif
           for (int q = nk - 7; q <= nk; q++) {
             mucofu2 = 0;
             mucofuv = 0;
@@ -2398,6 +2404,9 @@ void curvilinear4sg_ci(
                   istrxy * mucofw2 * u3( i, j, q);
           }
 
+#ifdef MAGIC_SYNC
+	    __syncthreads();
+#endif
           // Ghost point values, only nonzero for k=nk.
           // 72 ops., tot=4011
           mucofu2 = ghcof_no_gp(nk - k + 1) *
