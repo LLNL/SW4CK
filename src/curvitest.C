@@ -294,7 +294,7 @@ int main(int argc, char* argv[]) {
     for (int p = 0; p < 1; p++)
       curvilinear4sg_ci(optr[6], optr[7], optr[8], optr[9], optr[10], optr[11],
                         alpha_ptr+base3+nijk,alpha_ptr+base3+2*nijk,alpha_ptr+base3+3*nijk,
-			mua_ptr, lambdaa_ptr, met_ptr, jac_ptr,
+			mua_ptr+base, lambdaa_ptr+base, met_ptr, jac_ptr+base,
                         uacc_ptr, onesided_ptr, m_acof_no_gp, m_bope,
                         m_ghcof_no_gp, m_acof_no_gp, m_ghcof_no_gp, m_sg_str_x,
                         m_sg_str_y, nkg, op);

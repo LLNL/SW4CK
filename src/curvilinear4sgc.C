@@ -101,9 +101,9 @@ void curvilinear4sg_ci(
 
   // Direct reuse of fortran code by these macro definitions:
   // Direct reuse of fortran code by these macro definitions:
-#define mu(i, j, k) a_mu[base + (i) + ni * (j) + nij * (k)]
-#define la(i, j, k) a_lambda[base + (i) + ni * (j) + nij * (k)]
-#define jac(i, j, k) a_jac[base + (i) + ni * (j) + nij * (k)]
+#define mu(i, j, k) a_mu[(i) + ni * (j) + nij * (k)]
+#define la(i, j, k) a_lambda[(i) + ni * (j) + nij * (k)]
+#define jac(i, j, k) a_jac[(i) + ni * (j) + nij * (k)]
   //#define u(c, i, j, k) a_u[base3 + (i) + ni * (j) + nij * (k) + nijk * (c)]
 #define u1(i, j, k) a_u1[(i) + ni * (j) + nij * (k)]
 #define u2(i, j, k) a_u2[(i) + ni * (j) + nij * (k)]
