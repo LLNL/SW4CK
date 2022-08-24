@@ -5,7 +5,7 @@ set(GCC_HOME "/usr/tce/packages/gcc/${GCC_VERSION}")
 
 set(CMAKE_C_COMPILER   "${GCC_HOME}/bin/gcc" CACHE PATH "")
 set(CMAKE_CXX_COMPILER "${GCC_HOME}/bin/g++" CACHE PATH "")
-set(BLT_CXX_STD "c++11" CACHE STRING "")
+set(BLT_CXX_STD "c++14" CACHE STRING "")
 
 #------------------------------------------------------------------------------
 # CUDA support

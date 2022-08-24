@@ -133,6 +133,13 @@ void curvilinear4sg_ci(
                           RAJA::statement::For<
                               2, RAJA::cuda_thread_x_direct,
                               RAJA::statement::Lambda<0>>>>>>>>>;
+
+  //Launch policies
+  using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::cuda_launch_t<true>>;
+  using global_thread_x = RAJA::expt::LoopPolicy<RAJA::expt::cuda_global_thread_x>;
+  using global_thread_y = RAJA::expt::LoopPolicy<RAJA::expt::cuda_global_thread_y>;
+  using global_thread_z = RAJA::expt::LoopPolicy<RAJA::expt::cuda_global_thread_z>;
+
 #endif
 #if defined(ENABLE_HIP)
   using CURV_POL = RAJA::KernelPolicy<RAJA::statement::HipKernelFixed<
@@ -149,6 +156,11 @@ void curvilinear4sg_ci(
                                RAJA::statement::For<
                                    2, RAJA::hip_thread_x_direct,
                                    RAJA::statement::Lambda<0>>>>>>>>>;
+
+  using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::hip_launch_t<true>>;
+  using global_thread_x = RAJA::expt::LoopPolicy<RAJA::expt::hip_global_thread_x>;
+  using global_thread_y = RAJA::expt::LoopPolicy<RAJA::expt::hip_global_thread_y>;
+  using global_thread_z = RAJA::expt::LoopPolicy<RAJA::expt::hip_global_thread_z>;
 #endif
 #endif
   //#pragma omp parallel
@@ -186,6 +198,7 @@ void curvilinear4sg_ci(
       forall3async<__LINE__>(
           tag1, I, J, K, [=] RAJA_DEVICE(Tclass<1> t, int i, int j, int k) {
 #else
+            /*
       RAJA::RangeSegment k_range(1, 6 + 1);
       RAJA::RangeSegment j_range(jfirst + 2, jlast - 1);
       RAJA::RangeSegment i_range(ifirst + 2, ilast - 1);
@@ -193,6 +206,43 @@ void curvilinear4sg_ci(
       RAJA::kernel<CURV_POL>(
           RAJA::make_tuple(k_range, j_range, i_range),
           [=] RAJA_DEVICE(int k, int j, int i) {
+            */
+#if defined(RAJA_ENABLE_CUDA)
+            const int BlkSZ_x = 16;
+            const int BlkSZ_y = 4;
+            const int BlkSZ_z = 3;
+#endif
+
+#if defined(RAJA_ENABLE_HIP)
+            const int BlkSZ_x = 64;
+            const int BlkSZ_y = 2;
+            const int BlkSZ_z = 2;
+#endif
+
+            const int x_range = (ilast - 1) - (ifirst + 2);
+            const int y_range = (jlast - 1) - (jfirst + 2);
+            const int z_range =  (6 + 1) - (1);
+
+            const int NTeam_x = RAJA_DIVIDE_CEILING_INT(x_range, BlkSZ_x);
+            const int NTeam_y = RAJA_DIVIDE_CEILING_INT(y_range, BlkSZ_y);
+            const int NTeam_z = RAJA_DIVIDE_CEILING_INT(z_range, BlkSZ_z);
+
+            insertEvent(start0);
+            RAJA::expt::launch<launch_policy>
+              (RAJA::expt::Grid(RAJA::expt::Teams(NTeam_x, NTeam_y, NTeam_z),
+                                RAJA::expt::Threads(BlkSZ_x, BlkSZ_y, BlkSZ_z)),
+               [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
+
+                RAJA::expt::loop<global_thread_z>
+                  (ctx, RAJA::RangeSegment(1, 6 + 1), [&] (int k) {
+
+                    RAJA::expt::loop<global_thread_y>
+                      (ctx, RAJA::RangeSegment(jfirst + 2, jlast - 1), [&] (int j) {
+
+                        RAJA::expt::loop<global_thread_x>
+                          (ctx, RAJA::RangeSegment(ifirst + 2, ilast - 1), [&] (int i) {
+
+
 #endif
             // float_sw4 mux1, mux2, mux3, mux4, muy1, muy2, muy3, muy4, muz1,
             // muz2, muz3, muz4; float_sw4 r1, r2, r3; #pragma omp for
@@ -835,7 +885,14 @@ void curvilinear4sg_ci(
             lu(1, i, j, k) = a1 * lu(1, i, j, k) + sgn * r1 * ijac;
             lu(2, i, j, k) = a1 * lu(2, i, j, k) + sgn * r2 * ijac;
             lu(3, i, j, k) = a1 * lu(3, i, j, k) + sgn * r3 * ijac;
-          });  // End of curvilinear4sg_ci LOOP -1
+
+#ifndef NO_RAJA
+              });
+            });
+         });
+#endif
+
+      });  // End of curvilinear4sg_ci LOOP -1
       insertEvent(stop0);
       std::cout << "Kernel 1 time " << timeEvent(start0, stop0) << "\n";
     }
@@ -871,6 +928,7 @@ void curvilinear4sg_ci(
     // 1,
     //	      [=] RAJA_DEVICE(int i, int j, int k) {
 #else
+          /*
     RAJA::RangeSegment k_range(kstart, kend + 1);
     RAJA::RangeSegment j_range(jfirst + 2, jlast - 1);
     RAJA::RangeSegment i_range(ifirst + 2, ilast - 1);
@@ -878,6 +936,35 @@ void curvilinear4sg_ci(
     RAJA::kernel<CURV_POL>(
         RAJA::make_tuple(k_range, j_range, i_range),
         [=] RAJA_DEVICE(int k, int j, int i) {
+          */
+
+          const int BlkSZ_x = 64;
+          const int BlkSZ_y = 2;
+          const int BlkSZ_z = 2;
+
+          const int x_range =  (ilast - 1) - (ifirst + 2);
+          const int y_range = (jlast - 1) - (jfirst + 2);
+          const int z_range = (kend + 1) - (kstart);
+
+          const int NTeam_x = RAJA_DIVIDE_CEILING_INT(x_range, BlkSZ_x);
+          const int NTeam_y = RAJA_DIVIDE_CEILING_INT(y_range, BlkSZ_y);
+          const int NTeam_z = RAJA_DIVIDE_CEILING_INT(z_range, BlkSZ_z);
+
+          insertEvent(start1);
+          RAJA::expt::launch<launch_policy>
+            (RAJA::expt::Grid(RAJA::expt::Teams(NTeam_x, NTeam_y, NTeam_z),
+                              RAJA::expt::Threads(BlkSZ_x, BlkSZ_y, BlkSZ_z)),
+             [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
+
+              RAJA::expt::loop<global_thread_z>
+                (ctx, RAJA::RangeSegment(kstart, kend+1), [&] (int k) {
+
+                  RAJA::expt::loop<global_thread_y>
+                    (ctx, RAJA::RangeSegment(jfirst + 2, jlast - 1), [&] (int j) {
+
+                      RAJA::expt::loop<global_thread_x>
+                        (ctx, RAJA::RangeSegment(ifirst + 2, ilast - 1), [&] (int i) {
+
 #endif
           // #pragma omp for
           //    for( int k= kstart; k <= klast-2 ; k++ )
@@ -1285,6 +1372,13 @@ void curvilinear4sg_ci(
 
           // 4 ops, tot=773
           lu(1, i, j, k) = a1 * lu(1, i, j, k) + sgn * r1 * ijac;
+
+#ifndef NO_RAJA
+              });
+            });
+         });
+#endif
+
         });  // END OF LOOP 0
     insertEvent(stop1);
     std::cout << "Kernel 2 time " << timeEvent(start1, stop1) << "\n";
@@ -1316,10 +1410,42 @@ void curvilinear4sg_ci(
     // RAJA::RangeSegment k_range(kstart,klast-1);
     // RAJA::RangeSegment j_range(jfirst+2,jlast-1);
     // RAJA::RangeSegment i_range(ifirst+2,ilast-1);
-    insertEvent(start2);
-    RAJA::kernel<CURV_POL>(
-        RAJA::make_tuple(k_range, j_range, i_range),
-        [=] RAJA_DEVICE(int k, int j, int i) {
+
+    //AV
+          //insertEvent(start2);
+          //RAJA::kernel<CURV_POL>(
+          //RAJA::make_tuple(k_range, j_range, i_range),
+          //[=] RAJA_DEVICE(int k, int j, int i) {
+
+          /*Same compute grid as above -- AV
+          const int BlkSZ_x = 64;
+          const int BlkSZ_y = 2;
+          const int BlkSZ_z = 2;
+
+          const int x_range =  ilast - 1 - ifirst + 2;
+          const int y_range = jlast - 1 - jfirst + 2;
+          const int z_range = kend + 1 - kstart;
+
+          const int NTeam_x = RAJA_DIVIDE_CEILING_INT(x_range, BlkSZ_x);
+          const int NTeam_y = RAJA_DIVIDE_CEILING_INT(y_range, BlkSZ_y);
+          const int NTeam_z = RAJA_DIVIDE_CEILING_INT(z_range, BlkSZ_z);
+          */
+
+          insertEvent(start2);
+          RAJA::expt::launch<launch_policy>
+            (RAJA::expt::Grid(RAJA::expt::Teams(NTeam_x, NTeam_y, NTeam_z),
+                              RAJA::expt::Threads(BlkSZ_x, BlkSZ_y, BlkSZ_z)),
+             [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
+
+              RAJA::expt::loop<global_thread_z>
+                (ctx, RAJA::RangeSegment(kstart, kend+1), [&] (int k) {
+
+                  RAJA::expt::loop<global_thread_y>
+                    (ctx, RAJA::RangeSegment(jfirst + 2, jlast - 1), [&] (int j) {
+
+                      RAJA::expt::loop<global_thread_x>
+                        (ctx, RAJA::RangeSegment(ifirst + 2, ilast - 1), [&] (int i) {
+
 #endif
           float_sw4 ijac = strx(i) * stry(j) / jac(i, j, k);
           float_sw4 istry = 1 / (stry(j));
@@ -1700,6 +1826,13 @@ void curvilinear4sg_ci(
 
           // 4 ops, tot=1541
           lu(2, i, j, k) = a1 * lu(2, i, j, k) + sgn * r2 * ijac;
+
+#ifndef NO_RAJA
+              });
+            });
+         });
+#endif
+
         });  // END OF LOOP 1
     insertEvent(stop2);
     std::cout << "Kernel 3 time " << timeEvent(start2, stop2) << "\n";
@@ -1731,10 +1864,28 @@ void curvilinear4sg_ci(
     // RAJA::RangeSegment k_range(kstart,klast-1);
     // RAJA::RangeSegment j_range(jfirst+2,jlast-1);
     // RAJA::RangeSegment i_range(ifirst+2,ilast-1);
+
+    //RAJA::kernel<CURV_POL>(
+    //RAJA::make_tuple(k_range, j_range, i_range),
+    //[=] RAJA_DEVICE(int k, int j, int i) {
+
+    //Same compute grid as previous two kernels
+
     insertEvent(start3);
-    RAJA::kernel<CURV_POL>(
-        RAJA::make_tuple(k_range, j_range, i_range),
-        [=] RAJA_DEVICE(int k, int j, int i) {
+    RAJA::expt::launch<launch_policy>
+      (RAJA::expt::Grid(RAJA::expt::Teams(NTeam_x, NTeam_y, NTeam_z),
+                        RAJA::expt::Threads(BlkSZ_x, BlkSZ_y, BlkSZ_z)),
+       [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
+
+        RAJA::expt::loop<global_thread_z>
+          (ctx, RAJA::RangeSegment(kstart, kend+1), [&] (int k) {    
+
+            RAJA::expt::loop<global_thread_y>
+              (ctx, RAJA::RangeSegment(jfirst + 2, jlast - 1), [&] (int j) {
+    
+                RAJA::expt::loop<global_thread_x>
+                  (ctx, RAJA::RangeSegment(ifirst + 2, ilast - 1), [&] (int i) {
+
 #endif
           float_sw4 ijac = strx(i) * stry(j) / jac(i, j, k);
           float_sw4 istry = 1 / (stry(j));
@@ -2126,6 +2277,13 @@ void curvilinear4sg_ci(
 
           // 4 ops, tot=2126
           lu(3, i, j, k) = a1 * lu(3, i, j, k) + sgn * r3 * ijac;
+
+#ifndef NO_RAJA
+              });
+            });
+         });
+#endif
+
         });  // End of curvilinear4sg_ci LOOP 2
     insertEvent(stop3);
     std::cout << "Kernel 4 time " << timeEvent(start3, stop3) << "\n";
@@ -2177,6 +2335,7 @@ void curvilinear4sg_ci(
     // forall3X<256>(ifirst + 2, ilast - 1,jfirst + 2, jlast - 1,nk-5,nk+1,
     //    [=] RAJA_DEVICE(int i, int j, int k) {
 #else
+/*
     RAJA::RangeSegment kk_range(nk - 5, nk + 1);
     RAJA::RangeSegment jj_range(jfirst + 2, jlast - 1);
     RAJA::RangeSegment ii_range(ifirst + 2, ilast - 1);
@@ -2184,6 +2343,44 @@ void curvilinear4sg_ci(
     RAJA::kernel<CURV_POL>(
         RAJA::make_tuple(kk_range, jj_range, ii_range),
         [=] RAJA_DEVICE(int k, int j, int i) {
+*/
+
+
+#if defined(RAJA_ENABLE_CUDA)
+            const int BlkSZ_x = 16;
+            const int BlkSZ_y = 4;
+            const int BlkSZ_z = 6;
+#endif
+
+#if defined(RAJA_ENABLE_HIP)
+            const int BlkSZ_x = 64;
+            const int BlkSZ_y = 2;
+            const int BlkSZ_z = 2;
+#endif
+
+            const int x_range = (ilast - 1) - (ifirst + 2);
+            const int y_range = (jlast - 1) - (jfirst + 2);
+            const int z_range = (nk + 1) - (nk - 5);
+
+            const int NTeam_x = RAJA_DIVIDE_CEILING_INT(x_range, BlkSZ_x);
+            const int NTeam_y = RAJA_DIVIDE_CEILING_INT(y_range, BlkSZ_y);
+            const int NTeam_z = RAJA_DIVIDE_CEILING_INT(z_range, BlkSZ_z);
+
+            insertEvent(start4);
+
+            RAJA::expt::launch<launch_policy>
+              (RAJA::expt::Grid(RAJA::expt::Teams(NTeam_x, NTeam_y, NTeam_z),
+                                RAJA::expt::Threads(BlkSZ_x, BlkSZ_y, BlkSZ_z)),
+               [=] RAJA_HOST_DEVICE(RAJA::expt::LaunchContext ctx) {
+
+                RAJA::expt::loop<global_thread_z>
+                  (ctx, RAJA::RangeSegment(nk - 5, nk + 1), [&] (int k) {
+
+                    RAJA::expt::loop<global_thread_y>
+                      (ctx, RAJA::RangeSegment(jfirst + 2, jlast - 1), [&] (int j) {
+
+                        RAJA::expt::loop<global_thread_x>
+                          (ctx, RAJA::RangeSegment(ifirst + 2, ilast - 1), [&] (int i) {
 #endif
           // 5 ops
           float_sw4 ijac = strx(i) * stry(j) / jac(i, j, k);
@@ -2787,6 +2984,13 @@ void curvilinear4sg_ci(
           lu(1, i, j, k) = a1 * lu(1, i, j, k) + sgn * r1 * ijac;
           lu(2, i, j, k) = a1 * lu(2, i, j, k) + sgn * r2 * ijac;
           lu(3, i, j, k) = a1 * lu(3, i, j, k) + sgn * r3 * ijac;
+
+#ifndef NO_RAJA
+              });
+            });
+         });
+#endif
+
         });
     insertEvent(stop4);
     std::cout << "Kernel 5 time " << timeEvent(start4, stop4) << "\n";
