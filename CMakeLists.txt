@@ -2,18 +2,18 @@
 cmake_minimum_required(VERSION 3.18)
 project(SW4CK VERSION 1.0)
 
-set(BLT_CXX_STD "c++11" CACHE STRING "")
+set(BLT_CXX_STD "c++14" CACHE STRING "")
 include(blt/SetupBLT.cmake)
 
 configure_file(SW4CKConfig.h.in SW4CKConfig.h)
 
 
 # specify the C++ standard
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 if (NOT BLT_CXX_STD)
-    set(BLT_CXX_STD "c++11" CACHE STRING "")
+    set(BLT_CXX_STD "c++14" CACHE STRING "")
 endif()
 
 option(ENABLE_RAJA "ENABLE_RAJA" OFF)
