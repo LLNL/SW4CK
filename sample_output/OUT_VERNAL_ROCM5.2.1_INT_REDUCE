@@ -1,0 +1,20 @@
+!sr
+srun -n 1 ./sw4ck sw4ck.in
+HIP(5.2.21153)
+Reading from file sw4ck.in
+Launching sw4 kernels
+
+Kernel 1 time 5.60256
+Kernel 2 time 1.61808
+Kernel 3 time 1.59648
+Kernel 4 time 1.34496
+Kernel 5 time 5.54624
+
+Total kernel runtime = 15 milliseconds(15807 us )
+
+MIN = -1.5735458151501329865e-05
+MAX = 0.010639705916308216105
+
+Norm of output 0x1.941a40aec142ep+7
+Norm of output 202.0512747393526638
+Error = 0 %

@@ -2531,6 +2531,7 @@ void curvilinear4sg_ci(
 
           // rp - derivatives
           // 24*8 = 192 ops, tot=4355
+	  
           float_sw4 dudrm2 = 0, dudrm1 = 0, dudrp1 = 0, dudrp2 = 0;
           float_sw4 dvdrm2 = 0, dvdrm1 = 0, dvdrp1 = 0, dvdrp2 = 0;
           float_sw4 dwdrm2 = 0, dwdrm1 = 0, dwdrp1 = 0, dwdrp2 = 0;
@@ -2624,7 +2625,6 @@ void curvilinear4sg_ci(
 
           // rq - derivatives
           // 24*8 = 192 ops , tot=4694
-
           dudrm2 = 0;
           dudrm1 = 0;
           dudrp1 = 0;
@@ -2652,7 +2652,7 @@ void curvilinear4sg_ci(
             dvdrp1 -= bope(nk - k + 1, nk - q + 1) * u2( i, j + 1, q);
             dwdrp1 -= bope(nk - k + 1, nk - q + 1) * u3( i, j + 1, q);
           }
-
+	 
           // rq derivatives (u-eq)
           // 42 ops, tot=4736
           r1 += c2 * (mu(i, j + 2, k) * met(3, i, j + 2, k) *
