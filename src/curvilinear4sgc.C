@@ -1166,7 +1166,7 @@ void curvilinear4sg_ci(
                         (c2 * (u1( i + 2, j, k + 2) - u1( i + 2, j, k - 2)) +
                          c1 * (u1( i + 2, j, k + 1) - u1( i + 2, j, k - 1))) *
                         strx(i + 2) +
-                    lla(ip2jk) * met3( i + 2, j, k) *
+                    lla(ip2jk) * lmet3(ip2jk) *
                         lmet1(ip2jk) *
                         (c2 * (u2( i + 2, j, k + 2) - u2( i + 2, j, k - 2)) +
                          c1 * (u2( i + 2, j, k + 1) - u2( i + 2, j, k - 1))) *
@@ -1570,7 +1570,7 @@ void curvilinear4sg_ci(
           // 82 ops, tot=1277
           r2 +=
               c2 *
-                  ((lmu(ip2jk)) * met3( i + 2, j, k) *
+                  ((lmu(ip2jk)) * lmet3(ip2jk) *
                        lmet1(ip2jk) *
                        (c2 * (u1( i + 2, j, k + 2) - u1( i + 2, j, k - 2)) +
                         c1 * (u1( i + 2, j, k + 1) - u1( i + 2, j, k - 1))) +
@@ -3276,7 +3276,7 @@ void curvilinear4sg_ci(
         r1 += (c2 * ((2 * lmu(ip2jk) + lla(ip2jk)) *
                          lmet2(ip2jk) * lmet1(ip2jk) *
                          strx(i + 2) * dudrp2 +
-                     lla(ip2jk) * met3( i + 2, j, k) *
+                     lla(ip2jk) * lmet3(ip2jk) *
                          lmet1(ip2jk) * dvdrp2 * stry(j) +
                      lla(ip2jk) * lmet4(ip2jk) *
                          lmet1(ip2jk) * dwdrp2 -
@@ -3305,7 +3305,7 @@ void curvilinear4sg_ci(
 
         // rp derivatives (v-eq)
         // 42 ops, tot=4464
-        r2 += c2 * (lmu(ip2jk) * met3( i + 2, j, k) *
+        r2 += c2 * (lmu(ip2jk) * lmet3(ip2jk) *
                         lmet1(ip2jk) * dudrp2 +
                     lmu(ip2jk) * lmet2(ip2jk) *
                         lmet1(ip2jk) * dvdrp2 * strx(i + 2) * istry -
@@ -3774,7 +3774,7 @@ void curvilinear4sg_ci(
                      (c2 * (u1( i + 2, j, k + 2) - u1( i + 2, j, k - 2)) +
                       c1 * (u1( i + 2, j, k + 1) - u1( i + 2, j, k - 1))) *
                      strx(i + 2) +
-                 lla(ip2jk) * met3( i + 2, j, k) * lmet1(ip2jk) *
+                 lla(ip2jk) * lmet3(ip2jk) * lmet1(ip2jk) *
                      (c2 * (u2( i + 2, j, k + 2) - u2( i + 2, j, k - 2)) +
                       c1 * (u2( i + 2, j, k + 1) - u2( i + 2, j, k - 1))) *
                      stry(j) +
@@ -4087,7 +4087,7 @@ void curvilinear4sg_ci(
       // rp derivatives
       // 82 ops, tot=1277
       r2 +=
-          c2 * ((lmu(ip2jk)) * met3( i + 2, j, k) * lmet1(ip2jk) *
+          c2 * ((lmu(ip2jk)) * lmet3(ip2jk) * lmet1(ip2jk) *
                     (c2 * (u1( i + 2, j, k + 2) - u1( i + 2, j, k - 2)) +
                      c1 * (u1( i + 2, j, k + 1) - u1( i + 2, j, k - 1))) +
                 lmu(ip2jk) * lmet2(ip2jk) * lmet1(ip2jk) *
