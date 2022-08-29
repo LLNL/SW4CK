@@ -134,7 +134,7 @@ void curvilinear4sg_ci(
                               2, RAJA::cuda_thread_x_direct,
                               RAJA::statement::Lambda<0>>>>>>>>>;
 
-  //Launch policies
+  //Launch policies - CUDA forall do not seem to use launch bounds (Hip does see below)
   using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::cuda_launch_t<true>>;
   using global_thread_x = RAJA::expt::LoopPolicy<RAJA::expt::cuda_global_thread_x>;
   using global_thread_y = RAJA::expt::LoopPolicy<RAJA::expt::cuda_global_thread_y>;
@@ -157,7 +157,8 @@ void curvilinear4sg_ci(
                                    2, RAJA::hip_thread_x_direct,
                                    RAJA::statement::Lambda<0>>>>>>>>>;
 
-  using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::hip_launch_t<true>>;
+  //Hip execution policy uses launch bounds, see hip_foralls.h
+  using launch_policy = RAJA::expt::LaunchPolicy<RAJA::expt::hip_launch_t<true,256>>;
   using global_thread_x = RAJA::expt::LoopPolicy<RAJA::expt::hip_global_thread_x>;
   using global_thread_y = RAJA::expt::LoopPolicy<RAJA::expt::hip_global_thread_y>;
   using global_thread_z = RAJA::expt::LoopPolicy<RAJA::expt::hip_global_thread_z>;
