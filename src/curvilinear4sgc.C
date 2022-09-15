@@ -4,6 +4,7 @@
 ////
 //// SPDX-License-Identifier: GPL-2.0-only
 ////////////////////////////////////////////////////////////////////////////////
+#include <chrono>
 #ifdef ENABLE_HIP
 #include "hip/hip_runtime.h"
 #include "hip/hip_runtime_api.h"
