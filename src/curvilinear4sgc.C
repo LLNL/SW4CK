@@ -194,7 +194,9 @@ void curvilinear4sg_ci(
 #endif
       // Uses 166 registers, no spills
       Tclass<1> tag1(4.6441);
+      
       insertEvent(start0);
+      auto start_host = std::chrono::high_resolution_clock::now();
       forall3async<__LINE__>(
           tag1, I, J, K, [=] RAJA_DEVICE(Tclass<1> t, int i, int j, int k) {
 #else
@@ -893,8 +895,11 @@ void curvilinear4sg_ci(
 #endif
 
       });  // End of curvilinear4sg_ci LOOP -1
+	    auto stop_host = std::chrono::high_resolution_clock::now();
       insertEvent(stop0);
-      std::cout << "Kernel 1 time " << timeEvent(start0, stop0) << "\n";
+
+      auto time_host = std::chrono::duration_cast<std::chrono::microseconds>(stop_host-start_host).count();
+      std::cout << "Kernel 1 time " << timeEvent(start0, stop0) << " Host = "<<time_host<<" us \n";
     }
 #ifdef PEEKS_GALORE
     SW4_PEEK;
@@ -921,6 +926,7 @@ void curvilinear4sg_ci(
     // Use 168 regissters , no spills
     Tclass<2> tag2(1.4301);
     insertEvent(start1);
+auto	  start_host = std::chrono::high_resolution_clock::now();
 #pragma forceinline
     forall3async<__LINE__>(
         tag2, I, J, K, [=] RAJA_DEVICE(Tclass<2> t, int i, int j, int k) {
@@ -1380,8 +1386,10 @@ void curvilinear4sg_ci(
 #endif
 
         });  // END OF LOOP 0
+	  auto stop_host = std::chrono::high_resolution_clock::now();
     insertEvent(stop1);
-    std::cout << "Kernel 2 time " << timeEvent(start1, stop1) << "\n";
+    auto time_host = std::chrono::duration_cast<std::chrono::microseconds>(stop_host-start_host).count();
+    std::cout << "Kernel 2 time " << timeEvent(start1, stop1) << " Host = "<<time_host<<" us \n";
 
 #ifdef PEEKS_GALORE
     SW4_PEEK;
@@ -1403,6 +1411,7 @@ void curvilinear4sg_ci(
     // Uses 254 reisters, no spills
     Tclass<3> tag3(1.421);
     insertEvent(start2);
+    start_host = std::chrono::high_resolution_clock::now();
 #pragma forceinline
     forall3async<__LINE__>(
         tag3, I, J, K, [=] RAJA_DEVICE(Tclass<3> t, int i, int j, int k) {
@@ -1834,8 +1843,10 @@ void curvilinear4sg_ci(
 #endif
 
         });  // END OF LOOP 1
+	  stop_host = std::chrono::high_resolution_clock::now();
     insertEvent(stop2);
-    std::cout << "Kernel 3 time " << timeEvent(start2, stop2) << "\n";
+    time_host = std::chrono::duration_cast<std::chrono::microseconds>(stop_host-start_host).count();
+    std::cout << "Kernel 3 time " << timeEvent(start2, stop2) << " Host = "<<time_host<<" us \n";
 
 #ifdef PEEKS_GALORE
     SW4_PEEK;
@@ -1857,6 +1868,7 @@ void curvilinear4sg_ci(
     // Uses 255 registers, no spills
     Tclass<4> tag4(1.2905);
     insertEvent(start3);
+    start_host = std::chrono::high_resolution_clock::now();
 #pragma forceinline
     forall3async<__LINE__>(
         tag4, I, J, K, [=] RAJA_DEVICE(Tclass<4> t, int i, int j, int k) {
@@ -2285,8 +2297,10 @@ void curvilinear4sg_ci(
 #endif
 
         });  // End of curvilinear4sg_ci LOOP 2
+    stop_host = std::chrono::high_resolution_clock::now();
     insertEvent(stop3);
-    std::cout << "Kernel 4 time " << timeEvent(start3, stop3) << "\n";
+    time_host = std::chrono::duration_cast<std::chrono::microseconds>(stop_host-start_host).count();
+    std::cout << "Kernel 4 time " << timeEvent(start3, stop3) << " Host = "<<time_host<<" us \n";
   }
 #ifdef PEEKS_GALORE
   SW4_PEEK;
@@ -2327,6 +2341,7 @@ void curvilinear4sg_ci(
     // Uses 240 registers, no spills
     Tclass<5> tag5(5.1918);
     insertEvent(start4);
+    auto start_host = std::chrono::high_resolution_clock::now();
 #pragma forceinline
     forall3async<__LINE__>(
         tag5, II, JJ, KK, [=] RAJA_DEVICE(Tclass<5> t, int i, int j, int k) {
@@ -2992,8 +3007,10 @@ void curvilinear4sg_ci(
 #endif
 
         });
+	    auto stop_host = std::chrono::high_resolution_clock::now();
     insertEvent(stop4);
-    std::cout << "Kernel 5 time " << timeEvent(start4, stop4) << "\n";
+    auto time_host = std::chrono::duration_cast<std::chrono::microseconds>(stop_host-start_host).count();
+    std::cout << "Kernel 5 time " << timeEvent(start4, stop4) << " Host = "<<time_host<<" us \n";
   }
   SW4_MARK_END("CURVI::cuvilinear4sgc");
 
