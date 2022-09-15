@@ -1,0 +1,1 @@
+flux mini run -n 1 -c 8 -g 1 -o gpu-affinity=per-task -o cpu-affinity=per-task ./sw4ck sw4ck.in

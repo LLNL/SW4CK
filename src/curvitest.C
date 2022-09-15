@@ -314,6 +314,12 @@ void promo_version(){
   std::stringstream s;
 #ifdef ENABLE_HIP
   s<<"HIP("<<HIP_VERSION_MAJOR<<"."<<HIP_VERSION_MINOR<<"."<<HIP_VERSION_PATCH<<")\n";
+#ifdef AMD_UNROLL_FIX
+  s<<"AMD unroll fix enabled\n";
+#endif
+#ifdef MAGIC_SYNC
+  s<<"Magic sync enabled\n";
+#endif
 #elif ENABLE_CUDA
   s<<"CUDA("<<CUDA_VERSION<<")\n";
 #else
@@ -322,6 +328,7 @@ void promo_version(){
 #ifndef NO_RAJA
 s<<"RAJA("<<RAJA_VERSION_MAJOR<<"."<<RAJA_VERSION_MINOR<<"."<<RAJA_VERSION_PATCHLEVEL<<")\n";
 #endif
+s<<"\n";
 std::cout<<s.str();
   
 }
