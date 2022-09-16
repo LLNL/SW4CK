@@ -1,0 +1,1 @@
+miperf analyze -p workloads/FirstTry/mi200/ -p workloads/LowInt2/mi200/ -b 10

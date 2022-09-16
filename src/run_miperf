@@ -1,0 +1,1 @@
+srun -N 1 -n 1 -c8 -A GEO130_crusher -p batch -t 10 miperf profile -n LowInt2 -c "./sw4ck ./sw4ck.in " -k "forall3kernel<197"
