@@ -895,8 +895,18 @@ void curvilinear4sg_ci(
 
       });  // End of curvilinear4sg_ci LOOP -1
       insertEvent(stop0);
-      std::cout << "Kernel 1 time " << timeEvent(start0, stop0) << "\n";
+      //std::cout << "Kernel 1 time " << timeEvent(start0, stop0) << "\n";
     }
+#ifndef MAKE_RACE
+	    hipStreamSynchronize(0);
+#endif
+#pragma omp pararall for collapse(2)
+ for(int k=1;k<7;k++)
+ for(int j=jfirst+2;j<jlast-1;j++)
+ for(int i=ifirst+2;i<ilast-1;i++) mu(i,j,k)=-mu(i,j,k);
+ for(int k=1;k<7;k++)
+ for(int j=jfirst+2;j<jlast-1;j++)
+ for(int i=ifirst+2;i<ilast-1;i++) mu(i,j,k)=-mu(i,j,k);
 #ifdef PEEKS_GALORE
     SW4_PEEK;
     SYNC_DEVICE;
