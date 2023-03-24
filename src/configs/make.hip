@@ -11,10 +11,10 @@ HSA_ROOT_DIR = ${ROCM_PATH}/hsa
 GCC_LINK_LINE = -L $(HIP_ROOT_DIR)/lib -L $(HSA_ROOT_DIR)/lib -lhsa-runtime64  -lm -lstdc++ -ldl
 
 
-MORE_FLAGS = -I${ROCM_PATH}/include -isystem ${ROCM_PATH}/llvm/lib/clang/12.0.0/include/.. -isystem ${ROCM_PATH}/hsa/include -isystem ${ROCM_PATH}/hip/include -D__HIP_ARCH_GFX90a__=1 --cuda-gpu-arch=gfx90a -O3 -x hip -Winconsistent-missing-override --amdgpu-target=gfx90a -DNO_RAJA=1 -Wall -Wno-unknown-pragmas 
+MORE_FLAGS = -I${ROCM_PATH}/include -O3 -x hip -Winconsistent-missing-override --offload-arch=gfx90a -DNO_RAJA=1 -Wall -Wno-unknown-pragmas -Rpass-analysis=kernel-resource-usage
 
 
-LINKFLAGS =  -std=c++14  --amdgpu-target=gfx90a -fgpu-rdc
+LINKFLAGS =  -std=c++14  --offload-arch=gfx90a -fgpu-rdc
 EXTRA_CXX_FLAGS =  -O3  -x hip  -std=c++14 -I$(RAJA_LOCATION)/include  -DENABLE_HIP $(MORE_FLAGS) -Winconsistent-missing-override 
 
 EXTRA_CXX_FLAGS2 =  -O3  -std=c++14 -I $(CUDA_HOME)/include -I$(RAJA_LOCATION)/include  -DRAJA_USE_RESTRICT_PTR -DCUDA_CODE -DENABLE_HIP   $(MORE_FLAGS)
