@@ -1,0 +1,11 @@
+omniperf profile -n Kernel5 -k "forall3kernel<2332" -- ./sw4ck sw4ck.in
+omniperf profile -n Kernel1 -k "forall3kernel<199" -- ./sw4ck sw4ck.in
+omniperf profile -n Kernel3 -k "forall3kernel<1408" -- ./sw4ck sw4ck.in
+omniperf profile -n Kernel2 -k "forall3kernel<926" -- ./sw4ck sw4ck.in
+omniperf profile -n Kernel4 -k "forall3kernel<1862" -- ./sw4ck sw4ck.in
+
+omniperf analyze -p workloads/Kernel5/mi200 > Kernel5
+omniperf analyze -p workloads/Kernel1/mi200 > Kernel1
+omniperf analyze -p workloads/Kernel3/mi200 > Kernel3
+omniperf analyze -p workloads/Kernel2/mi200 > Kernel2
+omniperf analyze -p workloads/Kernel4/mi200 > Kernel4
