@@ -1,6 +1,32 @@
 SW4CK(SW4 Curvilinear Kernels) consists of 5 stencil evaluation kernels that account for
 ~50% of the solution time in [**SW4**](https://github.com/geodynamics/sw4).
 
+[**MERGE**] branch.
+
+Kernels 2,3 & 4 merged into 1 kernel. Runtime ~3X slower:
+
+/sw4ck  sw4ck.in
+HIP(5.4.22804)
+AMD unroll fix enabled
+Magic sync enabled
+
+Reading from file sw4ck.in
+Launching sw4 kernels
+
+Kernel 1 time 6.03074
+Kernel 2 time 19.6401
+Kernel 5 time 6.04994
+
+Total kernel runtime = 31 milliseconds (31809 us ) 
+
+MIN = -1.5735458151501329865e-05
+MAX = 0.010639705916308216105
+
+Norm of output 0x1.941a40aec142ep+7
+Norm of output 202.0512747393526638
+Error = 0 %
+
+
 Documentation
 ----------------
 
