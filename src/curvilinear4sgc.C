@@ -212,14 +212,17 @@ void curvilinear4sg_ci(
             const int BlkSZ_x = 16;
             const int BlkSZ_y = 4;
             const int BlkSZ_z = 3;
+            //empty forall to avoid measuring stream creation
+            RAJA::forall<RAJA::cuda_exec<256>>(RAJA::RangeSegment(0,1), [=] RAJA_DEVICE (int i) {});
 #endif
 
 #if defined(RAJA_ENABLE_HIP)
             const int BlkSZ_x = 64;
             const int BlkSZ_y = 2;
             const int BlkSZ_z = 2;
+            //empty forall to avoid measuring stream creation
+            RAJA::forall<RAJA::hip_exec<256>>(RAJA::RangeSegment(0,1), [=] RAJA_DEVICE (int i) {});
 #endif
-
             const int x_range = (ilast - 1) - (ifirst + 2);
             const int y_range = (jlast - 1) - (jfirst + 2);
             const int z_range =  (6 + 1) - (1);
@@ -1879,11 +1882,11 @@ void curvilinear4sg_ci(
        [=] RAJA_HOST_DEVICE(RAJA::LaunchContext ctx) {
 
         RAJA::loop<global_thread_z>
-          (ctx, RAJA::RangeSegment(kstart, kend+1), [&] (int k) {    
+          (ctx, RAJA::RangeSegment(kstart, kend+1), [&] (int k) {
 
             RAJA::loop<global_thread_y>
               (ctx, RAJA::RangeSegment(jfirst + 2, jlast - 1), [&] (int j) {
-    
+
                 RAJA::loop<global_thread_x>
                   (ctx, RAJA::RangeSegment(ifirst + 2, ilast - 1), [&] (int i) {
 
