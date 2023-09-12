@@ -1,0 +1,24 @@
+#use make -f Makefile.hipcc
+
+LINKER = amdclang
+CXX = $(PREP) amdclang
+
+HIP_ROOT_DIR = $(HIP_PATH)
+
+HSA_ROOT_DIR = ${ROCM_PATH}/hsa
+
+GCC_LINK_LINE = -lm -lstdc++ -ldl
+
+
+MORE_FLAGS =  -O3 -Winconsistent-missing-override  -DNO_RAJA=1 -Wall -Wno-unknown-pragmas
+
+
+LINKFLAGS = 
+EXTRA_CXX_FLAGS =  -O3  -fopenmp -std=c++14  -DENABLE_OPENMP $(MORE_FLAGS) 
+
+EXTRA_CXX_FLAGS2 =  -O3  -std=c++14   -DRAJA_USE_RESTRICT_PTR -DCUDA_CODE -DENABLE_OPENMP   $(MORE_FLAGS)
+
+EXTRA_LINK_FLAGS = -O3 -fopenmp -ldl -lm
+
+
+

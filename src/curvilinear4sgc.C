@@ -9,18 +9,18 @@
 #include "hip/hip_runtime_api.h"
 #endif
 template <typename T>
-__device__ __forceinline__ T load(const T& ref) {
+ T load(const T& ref) {
   return __builtin_nontemporal_load(&ref);
 }
 template <typename T>
-__device__ __forceinline__ void store(const T value, T& ref) {
+ void store(const T value, T& ref) {
   return __builtin_nontemporal_store(value, &ref);
 }
 #define float_sw4 double
 #define SW4_MARK_FUNCTION
 #define SW4_MARK_BEGIN(arg)
 #define SW4_MARK_END(arg)
-#define RAJA_DEVICE __device__
+#define RAJA_DEVICE 
 #include "foralls.h"
 //#include "policies.h"
 #ifndef NO_RAJA
@@ -165,8 +165,6 @@ void curvilinear4sg_ci(
 #endif
 #endif
   //#pragma omp parallel
-  auto start0 = newEvent();
-  auto stop0 = newEvent();
   {
     int kstart = kfirst + 2;
     int kend = klast - 2;
@@ -195,7 +193,7 @@ void curvilinear4sg_ci(
 #endif
       // Uses 166 registers, no spills
       Tclass<1> tag1(4.6441);
-      insertEvent(start0);
+      //insertEvent(start0);
       forall3async<__LINE__>(
           tag1, I, J, K, [=] RAJA_DEVICE(Tclass<1> t, int i, int j, int k) {
 #else
@@ -203,7 +201,7 @@ void curvilinear4sg_ci(
       RAJA::RangeSegment k_range(1, 6 + 1);
       RAJA::RangeSegment j_range(jfirst + 2, jlast - 1);
       RAJA::RangeSegment i_range(ifirst + 2, ilast - 1);
-      insertEvent(start0);
+      //insertEvent(start0);
       RAJA::kernel<CURV_POL>(
           RAJA::make_tuple(k_range, j_range, i_range),
           [=] RAJA_DEVICE(int k, int j, int i) {
@@ -228,7 +226,7 @@ void curvilinear4sg_ci(
             const int NTeam_y = RAJA_DIVIDE_CEILING_INT(y_range, BlkSZ_y);
             const int NTeam_z = RAJA_DIVIDE_CEILING_INT(z_range, BlkSZ_z);
 
-            insertEvent(start0);
+            //insertEvent(start0);
             RAJA::expt::launch<launch_policy>
               (RAJA::expt::Grid(RAJA::expt::Teams(NTeam_x, NTeam_y, NTeam_z),
                                 RAJA::expt::Threads(BlkSZ_x, BlkSZ_y, BlkSZ_z)),
@@ -894,8 +892,8 @@ void curvilinear4sg_ci(
 #endif
 
       });  // End of curvilinear4sg_ci LOOP -1
-      insertEvent(stop0);
-      std::cout << "Kernel 1 time " << timeEvent(start0, stop0) << "\n";
+      //insertEvent(stop0);
+      //std::cout << "Kernel 1 time " << timeEvent(start0, stop0) << "\n";
     }
 #ifdef PEEKS_GALORE
     SW4_PEEK;
@@ -906,8 +904,6 @@ void curvilinear4sg_ci(
     SYNC_DEVICE;
 #endif
 
-    auto start1 = newEvent();
-    auto stop1 = newEvent();
 #if defined(NO_RAJA)
     // LOOP 0
     RangeGS<256, 4> IS(ifirst + 2, ilast - 1);
@@ -921,7 +917,7 @@ void curvilinear4sg_ci(
     // forall3GS(IS,JS,KS, [=]RAJA_DEVICE(int i,int j,int k){
     // Use 168 regissters , no spills
     Tclass<2> tag2(1.4301);
-    insertEvent(start1);
+    //insertEvent(start1);
 #pragma forceinline
     forall3async<__LINE__>(
         tag2, I, J, K, [=] RAJA_DEVICE(Tclass<2> t, int i, int j, int k) {
@@ -933,7 +929,7 @@ void curvilinear4sg_ci(
     RAJA::RangeSegment k_range(kstart, kend + 1);
     RAJA::RangeSegment j_range(jfirst + 2, jlast - 1);
     RAJA::RangeSegment i_range(ifirst + 2, ilast - 1);
-    insertEvent(start1);
+    //insertEvent(start1);
     RAJA::kernel<CURV_POL>(
         RAJA::make_tuple(k_range, j_range, i_range),
         [=] RAJA_DEVICE(int k, int j, int i) {
@@ -951,7 +947,7 @@ void curvilinear4sg_ci(
           const int NTeam_y = RAJA_DIVIDE_CEILING_INT(y_range, BlkSZ_y);
           const int NTeam_z = RAJA_DIVIDE_CEILING_INT(z_range, BlkSZ_z);
 
-          insertEvent(start1);
+          //insertEvent(start1);
           RAJA::expt::launch<launch_policy>
             (RAJA::expt::Grid(RAJA::expt::Teams(NTeam_x, NTeam_y, NTeam_z),
                               RAJA::expt::Threads(BlkSZ_x, BlkSZ_y, BlkSZ_z)),
@@ -1381,15 +1377,15 @@ void curvilinear4sg_ci(
 #endif
 
         });  // END OF LOOP 0
-    insertEvent(stop1);
-    std::cout << "Kernel 2 time " << timeEvent(start1, stop1) << "\n";
+    //insertEvent(stop1);
+    //std::cout << "Kernel 2 time " << timeEvent(start1, stop1) << "\n";
 
 #ifdef PEEKS_GALORE
     SW4_PEEK;
     SYNC_DEVICE;
 #endif
-    auto start2 = newEvent();
-    auto stop2 = newEvent();
+    //auto start2 = newEvent();
+    //auto stop2 = newEvent();
 #if defined(NO_RAJA)
     // LOOP 1
     // RangeGS<256,4> IS(ifirst+2,ilast-1);
@@ -1403,7 +1399,7 @@ void curvilinear4sg_ci(
     // forall3GS(IS,JS,KS, [=]RAJA_DEVICE(int i,int j,int k){
     // Uses 254 reisters, no spills
     Tclass<3> tag3(1.421);
-    insertEvent(start2);
+    //insertEvent(start2);
 #pragma forceinline
     forall3async<__LINE__>(
         tag3, I, J, K, [=] RAJA_DEVICE(Tclass<3> t, int i, int j, int k) {
@@ -1413,7 +1409,7 @@ void curvilinear4sg_ci(
     // RAJA::RangeSegment i_range(ifirst+2,ilast-1);
 
     //AV
-          //insertEvent(start2);
+          ////insertEvent(start2);
           //RAJA::kernel<CURV_POL>(
           //RAJA::make_tuple(k_range, j_range, i_range),
           //[=] RAJA_DEVICE(int k, int j, int i) {
@@ -1432,7 +1428,7 @@ void curvilinear4sg_ci(
           const int NTeam_z = RAJA_DIVIDE_CEILING_INT(z_range, BlkSZ_z);
           */
 
-          insertEvent(start2);
+          //insertEvent(start2);
           RAJA::expt::launch<launch_policy>
             (RAJA::expt::Grid(RAJA::expt::Teams(NTeam_x, NTeam_y, NTeam_z),
                               RAJA::expt::Threads(BlkSZ_x, BlkSZ_y, BlkSZ_z)),
@@ -1835,15 +1831,15 @@ void curvilinear4sg_ci(
 #endif
 
         });  // END OF LOOP 1
-    insertEvent(stop2);
-    std::cout << "Kernel 3 time " << timeEvent(start2, stop2) << "\n";
+    //insertEvent(stop2);
+    //std::cout << "Kernel 3 time " << timeEvent(start2, stop2) << "\n";
 
 #ifdef PEEKS_GALORE
     SW4_PEEK;
     SYNC_DEVICE;
 #endif
-    auto start3 = newEvent();
-    auto stop3 = newEvent();
+    //auto start3 = newEvent();
+    //auto stop3 = newEvent();
 #if defined(NO_RAJA)
     // LOOP 2
     // RangeGS<256,4> IS(ifirst+2,ilast-1);
@@ -1857,7 +1853,7 @@ void curvilinear4sg_ci(
     // forall3GS(IS,JS,KS, [=]RAJA_DEVICE(int i,int j,int k){
     // Uses 255 registers, no spills
     Tclass<4> tag4(1.2905);
-    insertEvent(start3);
+    //insertEvent(start3);
 #pragma forceinline
     forall3async<__LINE__>(
         tag4, I, J, K, [=] RAJA_DEVICE(Tclass<4> t, int i, int j, int k) {
@@ -1872,7 +1868,7 @@ void curvilinear4sg_ci(
 
     //Same compute grid as previous two kernels
 
-    insertEvent(start3);
+    //insertEvent(start3);
     RAJA::expt::launch<launch_policy>
       (RAJA::expt::Grid(RAJA::expt::Teams(NTeam_x, NTeam_y, NTeam_z),
                         RAJA::expt::Threads(BlkSZ_x, BlkSZ_y, BlkSZ_z)),
@@ -2286,8 +2282,8 @@ void curvilinear4sg_ci(
 #endif
 
         });  // End of curvilinear4sg_ci LOOP 2
-    insertEvent(stop3);
-    std::cout << "Kernel 4 time " << timeEvent(start3, stop3) << "\n";
+    //insertEvent(stop3);
+    //std::cout << "Kernel 4 time " << timeEvent(start3, stop3) << "\n";
   }
 #ifdef PEEKS_GALORE
   SW4_PEEK;
@@ -2297,8 +2293,8 @@ void curvilinear4sg_ci(
   // SYNC_STREAM; // CURVI_CPU
   /// CURVIMR ADDITION
   if (onesided[5] == 1) {
-    auto start4 = newEvent();
-    auto stop4 = newEvent();
+    //auto start4 = newEvent();
+    //auto stop4 = newEvent();
 // #pragma omp for
 //     for (int k = nk - 5; k <= nk; k++)
 //       for (int j = jfirst + 2; j <= jlast - 2; j++)
@@ -2327,7 +2323,7 @@ void curvilinear4sg_ci(
     // 	  int k=nk+kk;
     // Uses 240 registers, no spills
     Tclass<5> tag5(5.1918);
-    insertEvent(start4);
+    //insertEvent(start4);
 #pragma forceinline
     forall3async<__LINE__>(
         tag5, II, JJ, KK, [=] RAJA_DEVICE(Tclass<5> t, int i, int j, int k) {
@@ -2340,7 +2336,7 @@ void curvilinear4sg_ci(
     RAJA::RangeSegment kk_range(nk - 5, nk + 1);
     RAJA::RangeSegment jj_range(jfirst + 2, jlast - 1);
     RAJA::RangeSegment ii_range(ifirst + 2, ilast - 1);
-    insertEvent(start4);
+    //insertEvent(start4);
     RAJA::kernel<CURV_POL>(
         RAJA::make_tuple(kk_range, jj_range, ii_range),
         [=] RAJA_DEVICE(int k, int j, int i) {
@@ -2367,7 +2363,7 @@ void curvilinear4sg_ci(
             const int NTeam_y = RAJA_DIVIDE_CEILING_INT(y_range, BlkSZ_y);
             const int NTeam_z = RAJA_DIVIDE_CEILING_INT(z_range, BlkSZ_z);
 
-            insertEvent(start4);
+            //insertEvent(start4);
 
             RAJA::expt::launch<launch_policy>
               (RAJA::expt::Grid(RAJA::expt::Teams(NTeam_x, NTeam_y, NTeam_z),
@@ -2993,8 +2989,8 @@ void curvilinear4sg_ci(
 #endif
 
         });
-    insertEvent(stop4);
-    std::cout << "Kernel 5 time " << timeEvent(start4, stop4) << "\n";
+    //insertEvent(stop4);
+    //std::cout << "Kernel 5 time " << timeEvent(start4, stop4) << "\n";
   }
   SW4_MARK_END("CURVI::cuvilinear4sgc");
 

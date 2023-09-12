@@ -18,4 +18,8 @@ void promo_version();
 
 #endif
 
+#if defined(ENABLE_OPENMP)
+#include "openmp_foralls.h"
+#endif
+
 #endif

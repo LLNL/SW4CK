@@ -13,6 +13,7 @@
 #include <tuple>
 #include <chrono>
 #include <limits>
+#include <cmath>
 #define float_sw4 double
 #include "SW4CKConfig.h"
 #include "foralls.h"
@@ -96,7 +97,7 @@ std::string Sarray::fill(std::istringstream& iss) {
 void Sarray::init() {
   double* lm_data = m_data;
   forallasync(0, size / 8,
-              [=] __device__(int i) { lm_data[i] = sin(double(i)); });
+              [=] (int i) { lm_data[i] = sin(double(i)); });
 }
 
 void Sarray::init2() {
@@ -115,7 +116,7 @@ void Sarray::init2() {
   
  
   forall3asyncnotimer(
-	       I, J, K, [=] __device__(int i, int j, int k) {
+	       I, J, K, [=] (int i, int j, int k) {
 		 for (int c=0;c<nc;c++){
 		   
 		   int indx = c + i * offi + j * offj +
@@ -241,7 +242,7 @@ int main(int argc, char* argv[]) {
 
   // std::cout << "Init the cof arrays\n";
   forallasync(0, (6 + 384 + 24 + 48 + 6 + 384 + 6 + 6),
-              [=] __device__(int i) { m_sbop[i] = i / 1000.0; });
+              [=] (int i) { m_sbop[i] = i / 1000.0; });
   // std::cout << "Done\n";
 
   for (int i = 1; i < 2; i++) {  // 0 has the smaller datatset
@@ -267,7 +268,7 @@ int main(int argc, char* argv[]) {
 
     double* m_sg_str_x = (double*)ptr;
     double* m_sg_str_y = m_sg_str_x + optr[7] - optr[6] + 1;
-    forallasync(0, size, [=] __device__(int i) { m_sg_str_x[i] = i / 1000.0; });
+    forallasync(0, size, [=] (int i) { m_sg_str_x[i] = i / 1000.0; });
     // std::cout << "Done initilizing m_sg_str_x and y\n" << std::flush;
 #ifdef ENABLE_CUDA
     cudaProfilerStart();
