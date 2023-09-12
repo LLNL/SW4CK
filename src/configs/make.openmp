@@ -14,11 +14,11 @@ MORE_FLAGS =  -O3 -Winconsistent-missing-override  -DNO_RAJA=1 -Wall -Wno-unknow
 
 
 LINKFLAGS = 
-EXTRA_CXX_FLAGS =  -O3  -fopenmp -std=c++14  -DENABLE_OPENMP $(MORE_FLAGS) 
+EXTRA_CXX_FLAGS =  -O3  -g -fopenmp -std=c++14  -DENABLE_OPENMP $(MORE_FLAGS) 
 
 EXTRA_CXX_FLAGS2 =  -O3  -std=c++14   -DRAJA_USE_RESTRICT_PTR -DCUDA_CODE -DENABLE_OPENMP   $(MORE_FLAGS)
 
-EXTRA_LINK_FLAGS = -O3 -fopenmp -ldl -lm
+EXTRA_LINK_FLAGS = -O3 -g -fopenmp -ldl -lm -lstdc++
 
 
 

@@ -86,6 +86,10 @@ std::string Sarray::fill(std::istringstream& iss) {
   }
 #endif
 
+#ifdef ENABLE_OPENMP
+  ptr = new double[m_nc * m_ni * m_nj * m_nk ];
+#endif
+
 #ifdef VERBOSE
   std::cout << "Allocated " << m_nc * m_ni * m_nj * m_nk * sizeof(double)
             << " bytes for array " << name << "[" << g << "]\n";
@@ -228,6 +232,9 @@ int main(int argc, char* argv[]) {
     abort();
   }
 #endif
+#ifdef ENABLE_OPENMP
+  ptr = new double[ (6 + 384 + 24 + 48 + 6 + 384 + 6 + 6)];
+#endif
 
   double *m_sbop, *m_acof, *m_bop, *m_bope, *m_ghcof, *m_acof_no_gp,
       *m_ghcof_no_gp;
@@ -264,6 +271,9 @@ int main(int argc, char* argv[]) {
 #endif
 #ifdef ENABLE_HIP
     hipMalloc(&ptr, size * sizeof(double));
+#endif
+#ifdef ENABLE_OPENMP
+    ptr = new double[size];
 #endif
 
     double* m_sg_str_x = (double*)ptr;
@@ -323,6 +333,8 @@ void promo_version(){
 #endif
 #elif ENABLE_CUDA
   s<<"CUDA("<<CUDA_VERSION<<")\n";
+#elif ENABLE_OPENMP
+  s<<"OPENMP()\n";
 #else
   s<<"Unknown programming model\n";
 #endif
