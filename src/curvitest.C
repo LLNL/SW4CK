@@ -47,6 +47,7 @@ class Sarray {
   Sarray() {}
   Sarray(int nc, int ibeg, int iend, int jbeg, int jend, int kbeg, int kend);
   std::string fill(std::istringstream& iss);
+  std::string fill(std::istringstream& iss,int NI,int NJ,int NK);
   void init();
   void init2();
   double norm();
@@ -97,6 +98,46 @@ std::string Sarray::fill(std::istringstream& iss) {
   m_data = (double*)ptr;
   return name;
 }
+std::string Sarray::fill(std::istringstream& iss, int NI, int NJ, int NK ) {
+  std::string name;
+  if (!(iss >> name >> g >> m_nc >> m_ni >> m_nj >> m_nk >> m_ib >> m_ie >>
+        m_jb >> m_je >> m_kb >> m_ke >> m_base >> m_offi >> m_offj >> m_offk >>
+        m_offc >> m_npts))
+    return "Break";
+  m_ni= NI;
+  m_nj = NJ;
+  m_nk = NK;
+#ifdef VERBOSE
+  std::cout << name << " " << m_npts << "\n";
+#endif
+  void* ptr;
+  size = m_nc * m_ni * m_nj * m_nk * sizeof(double);
+
+#ifdef ENABLE_CUDA
+  if (cudaMallocManaged(&ptr, size) != cudaSuccess) {
+    std::cerr << "cudaMallocManaged failed for size " << size << " bytes\n";
+    abort();
+  }
+#endif
+#ifdef ENABLE_HIP
+  if (hipMalloc(&ptr, size) != hipSuccess) {
+    std::cerr << "hipMallocManaged failed for size " << size << " bytes\n";
+    abort();
+  }
+#endif
+
+#ifdef ENABLE_OPENMP
+  ptr = new double[m_nc * m_ni * m_nj * m_nk ];
+#endif
+
+#ifdef VERBOSE
+  std::cout << "Allocated " << m_nc * m_ni * m_nj * m_nk * sizeof(double)
+            << " bytes for array " << name << "[" << g << "]\n";
+#endif
+  m_data = (double*)ptr;
+  return name;
+}
+
 
 void Sarray::init() {
   double* lm_data = m_data;
@@ -168,6 +209,18 @@ int main(int argc, char* argv[]) {
   std::string line;
   int lc = 0;
   std::cout << "Reading from file " << argv[1] << "\n";
+
+  int NI=0,NJ=0,NK=0;
+  if (argc==5){
+    
+  NI = std::atoi(argv[2]);
+  NJ = std::atoi(argv[3]);
+  NK = std::atoi(argv[4]);
+  std::cout<<"Running for block size "<<NI<<" "<<NJ<<" "<<NK<<"\n";
+  } else {
+    std::cout<<"Running with default block size\n";
+  }
+  
   while (std::getline(iff, line)) {
     std::istringstream iss(line);
     int* optr = new int[14];
@@ -183,7 +236,11 @@ int main(int argc, char* argv[]) {
       onesided.push_back(optr);
     } else {
       Sarray* s = new Sarray();
-      auto name = s->fill(iss);
+      std::string name;
+
+      if (NI==0)
+	name = s->fill(iss);
+      else name = s->fill(iss,NI,NJ,NK);
       if (name == "Break") {
         std::cerr << "Error reading Sarray data on line " << lc + 1 << "\n";
         break;
@@ -254,6 +311,15 @@ int main(int argc, char* argv[]) {
 
   for (int i = 1; i < 2; i++) {  // 0 has the smaller datatset
     int* optr = onesided[i];
+    if (NI!=0){
+      optr[6]=-2;
+      optr[7]=NI-3;
+      optr[8]=-2;
+      optr[9]=NJ-3;
+      optr[10]=-2;
+      optr[11]=NK-3;
+      optr[12]=NK-6;
+    }
     double* alpha_ptr = arrays[i]["a_AlphaVE_0"]->m_data;
     double* mua_ptr = arrays[i]["mMuVE_0"]->m_data;
     double* lambdaa_ptr = arrays[i]["mLambdaVE_0"]->m_data;
