@@ -1,0 +1,1 @@
+srun -n 1 omnitrace-run -- ./sw4ck.ins sw4ck.in
