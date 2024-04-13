@@ -1,0 +1,1 @@
+omniperf profile -n test -- ./sw4ck sw4ck.in

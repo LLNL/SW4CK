@@ -1,0 +1,5 @@
+omniperf analyze -p workloads/test/MI300A_A1 -d 32 -o Kernel1
+omniperf analyze -p workloads/test/MI300A_A1 -d 33 -o Kernel2
+omniperf analyze -p workloads/test/MI300A_A1 -d 34 -o Kernel3
+omniperf analyze -p workloads/test/MI300A_A1 -d 35 -o Kernel4
+omniperf analyze -p workloads/test/MI300A_A1 -d 36 -o Kernel5
